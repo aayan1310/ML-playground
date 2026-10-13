@@ -1,0 +1,7 @@
+# Live server only (PART B). No torch here.
+fastapi
+uvicorn
+scikit-learn
+numpy
+pytest
+httpx

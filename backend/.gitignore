@@ -1,0 +1,16 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Raw dataset download (re-created by scripts/prepare_dataset.py)
+data/oxford-iiit-pet/
+
+# NOTE: data/images/, data/manifest.json and data/embeddings.npy are intentionally
+# NOT ignored - the project needs them to run.

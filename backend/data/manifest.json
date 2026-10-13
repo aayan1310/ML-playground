@@ -1,0 +1,362 @@
+[
+  {
+    "id": "cat_001",
+    "label": "cat",
+    "split": "test",
+    "file": "cat_001.jpg"
+  },
+  {
+    "id": "cat_002",
+    "label": "cat",
+    "split": "test",
+    "file": "cat_002.jpg"
+  },
+  {
+    "id": "cat_003",
+    "label": "cat",
+    "split": "train",
+    "file": "cat_003.jpg"
+  },
+  {
+    "id": "cat_004",
+    "label": "cat",
+    "split": "train",
+    "file": "cat_004.jpg"
+  },
+  {
+    "id": "cat_005",
+    "label": "cat",
+    "split": "train",
+    "file": "cat_005.jpg"
+  },
+  {
+    "id": "cat_006",
+    "label": "cat",
+    "split": "train",
+    "file": "cat_006.jpg"
+  },
+  {
+    "id": "cat_007",
+    "label": "cat",
+    "split": "train",
+    "file": "cat_007.jpg"
+  },
+  {
+    "id": "cat_008",
+    "label": "cat",
+    "split": "test",
+    "file": "cat_008.jpg"
+  },
+  {
+    "id": "cat_009",
+    "label": "cat",
+    "split": "train",
+    "file": "cat_009.jpg"
+  },
+  {
+    "id": "cat_010",
+    "label": "cat",
+    "split": "train",
+    "file": "cat_010.jpg"
+  },
+  {
+    "id": "cat_011",
+    "label": "cat",
+    "split": "train",
+    "file": "cat_011.jpg"
+  },
+  {
+    "id": "cat_012",
+    "label": "cat",
+    "split": "test",
+    "file": "cat_012.jpg"
+  },
+  {
+    "id": "cat_013",
+    "label": "cat",
+    "split": "train",
+    "file": "cat_013.jpg"
+  },
+  {
+    "id": "cat_014",
+    "label": "cat",
+    "split": "train",
+    "file": "cat_014.jpg"
+  },
+  {
+    "id": "cat_015",
+    "label": "cat",
+    "split": "train",
+    "file": "cat_015.jpg"
+  },
+  {
+    "id": "cat_016",
+    "label": "cat",
+    "split": "test",
+    "file": "cat_016.jpg"
+  },
+  {
+    "id": "cat_017",
+    "label": "cat",
+    "split": "train",
+    "file": "cat_017.jpg"
+  },
+  {
+    "id": "cat_018",
+    "label": "cat",
+    "split": "train",
+    "file": "cat_018.jpg"
+  },
+  {
+    "id": "cat_019",
+    "label": "cat",
+    "split": "train",
+    "file": "cat_019.jpg"
+  },
+  {
+    "id": "cat_020",
+    "label": "cat",
+    "split": "train",
+    "file": "cat_020.jpg"
+  },
+  {
+    "id": "cat_021",
+    "label": "cat",
+    "split": "train",
+    "file": "cat_021.jpg"
+  },
+  {
+    "id": "cat_022",
+    "label": "cat",
+    "split": "train",
+    "file": "cat_022.jpg"
+  },
+  {
+    "id": "cat_023",
+    "label": "cat",
+    "split": "train",
+    "file": "cat_023.jpg"
+  },
+  {
+    "id": "cat_024",
+    "label": "cat",
+    "split": "train",
+    "file": "cat_024.jpg"
+  },
+  {
+    "id": "cat_025",
+    "label": "cat",
+    "split": "train",
+    "file": "cat_025.jpg"
+  },
+  {
+    "id": "cat_026",
+    "label": "cat",
+    "split": "train",
+    "file": "cat_026.jpg"
+  },
+  {
+    "id": "cat_027",
+    "label": "cat",
+    "split": "train",
+    "file": "cat_027.jpg"
+  },
+  {
+    "id": "cat_028",
+    "label": "cat",
+    "split": "test",
+    "file": "cat_028.jpg"
+  },
+  {
+    "id": "cat_029",
+    "label": "cat",
+    "split": "test",
+    "file": "cat_029.jpg"
+  },
+  {
+    "id": "cat_030",
+    "label": "cat",
+    "split": "test",
+    "file": "cat_030.jpg"
+  },
+  {
+    "id": "dog_001",
+    "label": "dog",
+    "split": "train",
+    "file": "dog_001.jpg"
+  },
+  {
+    "id": "dog_002",
+    "label": "dog",
+    "split": "train",
+    "file": "dog_002.jpg"
+  },
+  {
+    "id": "dog_003",
+    "label": "dog",
+    "split": "test",
+    "file": "dog_003.jpg"
+  },
+  {
+    "id": "dog_004",
+    "label": "dog",
+    "split": "train",
+    "file": "dog_004.jpg"
+  },
+  {
+    "id": "dog_005",
+    "label": "dog",
+    "split": "train",
+    "file": "dog_005.jpg"
+  },
+  {
+    "id": "dog_006",
+    "label": "dog",
+    "split": "train",
+    "file": "dog_006.jpg"
+  },
+  {
+    "id": "dog_007",
+    "label": "dog",
+    "split": "train",
+    "file": "dog_007.jpg"
+  },
+  {
+    "id": "dog_008",
+    "label": "dog",
+    "split": "train",
+    "file": "dog_008.jpg"
+  },
+  {
+    "id": "dog_009",
+    "label": "dog",
+    "split": "train",
+    "file": "dog_009.jpg"
+  },
+  {
+    "id": "dog_010",
+    "label": "dog",
+    "split": "test",
+    "file": "dog_010.jpg"
+  },
+  {
+    "id": "dog_011",
+    "label": "dog",
+    "split": "test",
+    "file": "dog_011.jpg"
+  },
+  {
+    "id": "dog_012",
+    "label": "dog",
+    "split": "train",
+    "file": "dog_012.jpg"
+  },
+  {
+    "id": "dog_013",
+    "label": "dog",
+    "split": "test",
+    "file": "dog_013.jpg"
+  },
+  {
+    "id": "dog_014",
+    "label": "dog",
+    "split": "train",
+    "file": "dog_014.jpg"
+  },
+  {
+    "id": "dog_015",
+    "label": "dog",
+    "split": "test",
+    "file": "dog_015.jpg"
+  },
+  {
+    "id": "dog_016",
+    "label": "dog",
+    "split": "train",
+    "file": "dog_016.jpg"
+  },
+  {
+    "id": "dog_017",
+    "label": "dog",
+    "split": "train",
+    "file": "dog_017.jpg"
+  },
+  {
+    "id": "dog_018",
+    "label": "dog",
+    "split": "train",
+    "file": "dog_018.jpg"
+  },
+  {
+    "id": "dog_019",
+    "label": "dog",
+    "split": "train",
+    "file": "dog_019.jpg"
+  },
+  {
+    "id": "dog_020",
+    "label": "dog",
+    "split": "train",
+    "file": "dog_020.jpg"
+  },
+  {
+    "id": "dog_021",
+    "label": "dog",
+    "split": "train",
+    "file": "dog_021.jpg"
+  },
+  {
+    "id": "dog_022",
+    "label": "dog",
+    "split": "train",
+    "file": "dog_022.jpg"
+  },
+  {
+    "id": "dog_023",
+    "label": "dog",
+    "split": "train",
+    "file": "dog_023.jpg"
+  },
+  {
+    "id": "dog_024",
+    "label": "dog",
+    "split": "train",
+    "file": "dog_024.jpg"
+  },
+  {
+    "id": "dog_025",
+    "label": "dog",
+    "split": "test",
+    "file": "dog_025.jpg"
+  },
+  {
+    "id": "dog_026",
+    "label": "dog",
+    "split": "train",
+    "file": "dog_026.jpg"
+  },
+  {
+    "id": "dog_027",
+    "label": "dog",
+    "split": "test",
+    "file": "dog_027.jpg"
+  },
+  {
+    "id": "dog_028",
+    "label": "dog",
+    "split": "train",
+    "file": "dog_028.jpg"
+  },
+  {
+    "id": "dog_029",
+    "label": "dog",
+    "split": "test",
+    "file": "dog_029.jpg"
+  },
+  {
+    "id": "dog_030",
+    "label": "dog",
+    "split": "train",
+    "file": "dog_030.jpg"
+  }
+]

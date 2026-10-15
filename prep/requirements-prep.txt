@@ -1,0 +1,9 @@
+# One-time preparation and offline tooling for the ML Playground.
+# These packages are needed to download/wrangle images, compute embeddings
+# (torch/torchvision), export browser data, and run the offline evaluation.
+# The browser app itself needs NONE of these.
+torch
+torchvision
+pillow
+numpy
+scikit-learn

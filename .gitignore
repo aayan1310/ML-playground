@@ -1,0 +1,17 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Raw dataset download (re-created by prep/prepare_dataset.py) + large intermediates
+prep/data/raw/
+
+# NOTE: These are intentionally NOT ignored - the project needs them:
+#   prep/data/images/, prep/data/manifest.json, prep/data/embeddings.npy
+#   public/ml-playground/ (everything the browser loads)

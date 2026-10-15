@@ -1,0 +1,94 @@
+{
+  "setup": {
+    "n_train": 44,
+    "n_test": 16,
+    "dim": 512,
+    "model": "sklearn.linear_model.LogisticRegression",
+    "params": {
+      "C": 10,
+      "max_iter": 1000
+    },
+    "seeds": 20
+  },
+  "baseline_test_accuracy": 0.5,
+  "perfect_labels": {
+    "test_accuracy": 1.0,
+    "correct_count": 16,
+    "confidence_correct_mean": 0.8732281923294067,
+    "train_accuracy": 1.0
+  },
+  "train_size_sweep": [
+    {
+      "n_per_class": 3,
+      "mean_test_accuracy": 0.98125,
+      "min_test_accuracy": 0.75
+    },
+    {
+      "n_per_class": 5,
+      "mean_test_accuracy": 0.9875,
+      "min_test_accuracy": 0.8125
+    },
+    {
+      "n_per_class": 10,
+      "mean_test_accuracy": 1.0,
+      "min_test_accuracy": 1.0
+    },
+    {
+      "n_per_class": 15,
+      "mean_test_accuracy": 1.0,
+      "min_test_accuracy": 1.0
+    },
+    {
+      "n_per_class": 22,
+      "mean_test_accuracy": 1.0,
+      "min_test_accuracy": 1.0
+    }
+  ],
+  "mistake_sweep": [
+    {
+      "mistake_rate": 0.0,
+      "mean_test_accuracy": 1.0,
+      "min_test_accuracy": 1.0,
+      "confidence_correct_mean": 0.8732281811535358,
+      "confidence_wrong_mean": null,
+      "n_correct": 320,
+      "n_wrong": 0
+    },
+    {
+      "mistake_rate": 0.1,
+      "mean_test_accuracy": 0.978125,
+      "min_test_accuracy": 0.8125,
+      "confidence_correct_mean": 0.8076412563506787,
+      "confidence_wrong_mean": 0.5671469058309283,
+      "n_correct": 313,
+      "n_wrong": 7
+    },
+    {
+      "mistake_rate": 0.2,
+      "mean_test_accuracy": 0.915625,
+      "min_test_accuracy": 0.625,
+      "confidence_correct_mean": 0.7535362872247403,
+      "confidence_wrong_mean": 0.605929398978198,
+      "n_correct": 293,
+      "n_wrong": 27
+    },
+    {
+      "mistake_rate": 0.25,
+      "mean_test_accuracy": 0.878125,
+      "min_test_accuracy": 0.625,
+      "confidence_correct_mean": 0.7293411448756996,
+      "confidence_wrong_mean": 0.6121989167653598,
+      "n_correct": 281,
+      "n_wrong": 39
+    },
+    {
+      "mistake_rate": 0.3,
+      "mean_test_accuracy": 0.778125,
+      "min_test_accuracy": 0.4375,
+      "confidence_correct_mean": 0.6909153178992521,
+      "confidence_wrong_mean": 0.6301060730302838,
+      "n_correct": 249,
+      "n_wrong": 71
+    }
+  ]
+}

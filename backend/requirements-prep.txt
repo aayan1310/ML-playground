@@ -1,7 +1,0 @@
-# One-time preparation only (PART A).
-# These packages are needed to download/wrangle the images and compute embeddings.
-# The live server (PART B) does NOT need any of these.
-torch
-torchvision
-pillow
-numpy

@@ -1,0 +1,11 @@
+[project]
+name = "ml-game-backend"
+version = "0.1.0"
+description = "Add your description here"
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi>=0.143.0",
+    "numpy>=2.5.4",
+    "scikit-learn>=1.9.1",
+    "uvicorn[standard]>=0.54.0",
+]

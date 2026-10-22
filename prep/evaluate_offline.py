@@ -1,9 +1,10 @@
 """Offline evaluation of the ML Playground classifier.
 
-The browser TS engine will re-implement (approximately) the sklearn
-``LogisticRegression`` described in ``docs/data-contract.md`` and train on the
-labels the STUDENT assigns by sorting images into boxes. Since we cannot run a
-real student here, we evaluate the classifier with the TRUE labels instead, in
+The reference classifier is ``sklearn`` ``LogisticRegression`` as described in
+``docs/data-contract.md``. It backs BOTH the live FastAPI service
+(ml-game-backend) and a future browser TS engine, and it trains on the labels
+the STUDENT assigns by sorting images into boxes. Since we cannot run a real
+student here, we evaluate the classifier with the TRUE labels instead, in
 three ways:
 
   1. Perfect labels (all 22 cats + 22 dogs from the train pool, one fit).
@@ -25,6 +26,20 @@ Optionally write the raw numbers to a JSON file for docs:
 
     python evaluate_offline.py --json-out ../docs/evaluation-results.json
 
+Service-parity mode: read the FastAPI service's own data files instead of the
+prep-internal manifest/npy pair (the exact trio the live service loads, e.g.
+the checked-in ml-game-backend/data folder):
+
+    python evaluate_offline.py --json-input ../ml-game-backend/data
+
+Row-order caveat: the seeded experiments choose subsets by positional index,
+and dataset.json row order differs from manifest row order, so a given seed
+picks a different subset in JSON mode than in the default mode. Seeded sweep
+numbers are therefore expected to differ slightly between the two modes; the
+deterministic parts (baseline, perfect labels) are order-independent. The
+default manifest/numpy mode is unchanged and still regenerates the numbers
+recorded in docs/evaluation.md.
+
 C-sensitivity sweep (exploratory; does not affect the default report, whose
 reference C is now 10):
 
@@ -39,9 +54,9 @@ import numpy as np
 from sklearn.linear_model import LogisticRegression
 
 CAT, DOG = "cat", "dog"
-# Reference for the browser engine (C=10 picked via the C-sensitivity sweep):
-# sklearn defaults are solver=lbfgs, penalty=l2; max_iter is lengthened so lbfgs
-# is allowed to converge.
+# Reference for the service and the browser engine (C=10 picked via the
+# C-sensitivity sweep): sklearn defaults are solver=lbfgs, penalty=l2;
+# max_iter is lengthened so lbfgs is allowed to converge.
 CLF = dict(C=10, max_iter=1000)
 
 TRAIN_SIZES = [3, 5, 10, 15, 22]
@@ -57,8 +72,17 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--data-dir",
         type=Path,
-        default=prep_dir / "data",
-        help="Folder with manifest.json and embeddings.npy (default: prep/data).",
+        default=None,
+        help="Folder with manifest.json and embeddings.npy (default: prep/data). "
+        "Mutually exclusive with --json-input.",
+    )
+    parser.add_argument(
+        "--json-input",
+        type=Path,
+        default=None,
+        help="Read the FastAPI service's data trio (dataset.json + embeddings.json + "
+        "labels.json) from this folder instead of manifest/npy, e.g. "
+        "../ml-game-backend/data. Mutually exclusive with --data-dir.",
     )
     parser.add_argument("--seeds", type=int, default=N_SEEDS, help="Random seeds per experiment (default: 20).")
     parser.add_argument(
@@ -75,11 +99,156 @@ def parse_args() -> argparse.Namespace:
         help="Run ONLY the C-sensitivity sweep for these C values (e.g. 1 3 10 30 100) "
         "instead of the default report. Uses 30 seeds per random cell.",
     )
-    return parser.parse_args()
+    args = parser.parse_args()
+    if args.json_input is not None and args.data_dir is not None:
+        parser.error("--json-input and --data-dir are mutually exclusive.")
+    if args.data_dir is None and args.json_input is None:
+        args.data_dir = prep_dir / "data"
+    return args
 
 
 def label_to_int(label: str) -> int:
     return 0 if label == CAT else 1
+
+
+def load_service_data(data_dir: Path):
+    """Load the FastAPI service's private data trio (the exact files the live
+    service loads from MLPLAYGROUND_DATA_DIR):
+
+        dataset.json    {train: [{id, url}], test: [{id, url}]}
+        embeddings.json {dim, ids, vectors}
+        labels.json     {id: category}
+
+    Returns (train_ids, test_ids, labels, vectors): ids in dataset.json row
+    order, vectors as a dict of float numpy arrays. Raises SystemExit with a
+    clear message on any inconsistency (kept standalone; prep does not import
+    from ml-game-backend).
+    """
+    data_dir = Path(data_dir)
+    names = ("dataset.json", "embeddings.json", "labels.json")
+    missing = [name for name in names if not (data_dir / name).exists()]
+    if missing:
+        raise SystemExit(
+            "Missing service data file(s): " + ", ".join(missing) + f" in {data_dir}."
+        )
+
+    try:
+        dataset = json.loads((data_dir / "dataset.json").read_text(encoding="utf-8"))
+        embeddings = json.loads((data_dir / "embeddings.json").read_text(encoding="utf-8"))
+        labels = json.loads((data_dir / "labels.json").read_text(encoding="utf-8"))
+    except json.JSONDecodeError as exc:
+        raise SystemExit(f"Service data file(s) in {data_dir} are not valid JSON: {exc}") from exc
+
+    if not isinstance(dataset, dict) or not isinstance(dataset.get("train"), list) or not isinstance(dataset.get("test"), list):
+        raise SystemExit("dataset.json must be an object with 'train' and 'test' lists.")
+    if not isinstance(embeddings, dict) or not isinstance(embeddings.get("ids"), list) or not isinstance(embeddings.get("vectors"), list):
+        raise SystemExit("embeddings.json must be an object with 'ids' and 'vectors' lists.")
+    if not isinstance(labels, dict):
+        raise SystemExit("labels.json must be an object mapping image id to category.")
+
+    dim = embeddings.get("dim")
+    if not isinstance(dim, int) or dim <= 0:
+        raise SystemExit("embeddings.json 'dim' must be a positive integer.")
+    emb_ids = embeddings["ids"]
+    vectors_raw = embeddings["vectors"]
+    if len(emb_ids) != len(vectors_raw):
+        raise SystemExit(
+            f"embeddings.json has {len(emb_ids)} ids but {len(vectors_raw)} vectors."
+        )
+    if len(set(emb_ids)) != len(emb_ids):
+        raise SystemExit("embeddings.json contains duplicate ids.")
+
+    train_ids, test_ids = [], []
+    for split, target in (("train", train_ids), ("test", test_ids)):
+        for row in dataset[split]:
+            if not isinstance(row, dict) or "id" not in row or "url" not in row:
+                raise SystemExit(f"dataset.json {split} rows must have 'id' and 'url'.")
+            target.append(row["id"])
+    all_ids = train_ids + test_ids
+    if len(set(all_ids)) != len(all_ids):
+        raise SystemExit("dataset.json contains duplicate ids (or an id in both splits).")
+    if set(all_ids) != set(emb_ids) or set(all_ids) != set(labels):
+        raise SystemExit(
+            "dataset.json, embeddings.json and labels.json must cover the same ids."
+        )
+    for image_id, category in labels.items():
+        if not isinstance(category, str) or not category:
+            raise SystemExit(
+                f"labels.json: id {image_id!r} has an invalid category value."
+            )
+
+    vectors = {}
+    for image_id, vec in zip(emb_ids, vectors_raw):
+        if not isinstance(vec, list) or len(vec) != dim:
+            raise SystemExit(
+                f"embeddings.json vector for {image_id!r} has the wrong length (expected {dim})."
+            )
+        vectors[image_id] = np.asarray(vec, dtype=float)
+    return train_ids, test_ids, labels, vectors
+
+
+def reference_predict(train_ids, test_ids, labels, vectors):
+    """Fit the reference classifier on the given train ids (their true labels)
+    and predict every test id. Mirrors the live service: string labels,
+    ``LogisticRegression(**CLF)``, probabilities read back via
+    ``model.classes_`` (never assumed column order), ties broken by the lowest
+    class index. Used by the backend parity tests
+    (ml-game-backend/tests/test_parity.py).
+    """
+    features = np.stack([vectors[i] for i in train_ids])
+    target = np.array([labels[i] for i in train_ids])
+    model = LogisticRegression(**CLF)
+    model.fit(features, target)
+    classes = [str(c) for c in model.classes_]
+    results = {}
+    for image_id in test_ids:
+        proba = model.predict_proba(vectors[image_id].reshape(1, -1))[0]
+        by_category = {c: float(proba[classes.index(c)]) for c in classes}
+        ordered = [by_category[c] for c in classes]
+        best = int(np.argmax(ordered))
+        results[image_id] = {
+            "category": classes[best],
+            "confidence": float(ordered[best]),
+            "probabilities": by_category,
+        }
+    return results
+
+
+def load_eval_data(data_dir: Path, json_input: bool = False):
+    """Return (X_cat, X_dog, X_test, y_test) from either supported data format.
+
+    Default (json_input=False): prep's manifest.json + embeddings.npy, original
+    ids, manifest row order - the unchanged behaviour that produced the numbers
+    recorded in docs/evaluation.md.
+
+    json_input=True: the service's dataset.json + embeddings.json + labels.json
+    (opaque ids, dataset.json row order). Because the seeded experiments choose
+    subsets by positional index, a seed picks a different subset than in the
+    default mode (see the module docstring's row-order caveat); the
+    deterministic parts (baseline, perfect labels) are order-independent.
+    """
+    if json_input:
+        train_ids, test_ids, labels, vectors = load_service_data(data_dir)
+        cat_ids = [i for i in train_ids if labels[i] == CAT]
+        dog_ids = [i for i in train_ids if labels[i] == DOG]
+        X_cat = np.stack([vectors[i] for i in cat_ids])
+        X_dog = np.stack([vectors[i] for i in dog_ids])
+        X_test = np.stack([vectors[i] for i in test_ids])
+        y_test = np.array([label_to_int(labels[i]) for i in test_ids])
+        return X_cat, X_dog, X_test, y_test
+
+    manifest = json.loads((data_dir / "manifest.json").read_text(encoding="utf-8"))
+    embeddings = np.load(data_dir / "embeddings.npy")
+    index = {row["id"]: i for i, row in enumerate(manifest)}
+
+    train_rows = [row for row in manifest if row["split"] == "train"]
+    test_rows = [row for row in manifest if row["split"] == "test"]
+
+    X_test = embeddings[[index[row["id"]] for row in test_rows]]
+    y_test = np.array([label_to_int(row["label"]) for row in test_rows])
+    X_cat = embeddings[[index[row["id"]] for row in train_rows if row["label"] == CAT]]
+    X_dog = embeddings[[index[row["id"]] for row in train_rows if row["label"] == DOG]]
+    return X_cat, X_dog, X_test, y_test
 
 
 def confidence_summary(model, X_test, y_true_test):
@@ -98,7 +267,7 @@ def confidence_summary(model, X_test, y_true_test):
     return ans
 
 
-def run_c_sweep(data_dir: Path, c_values) -> dict:
+def run_c_sweep(data_dir: Path, c_values, json_input: bool = False) -> dict:
     """C-sensitivity surface: C x {clean, 25%% wrong} x n in {3, 10, 22}.
 
     For each cell reports mean/min test accuracy, mean confidence on correct and
@@ -109,17 +278,7 @@ def run_c_sweep(data_dir: Path, c_values) -> dict:
     every other cell uses ``C_SEEDS`` seeds. Subsets use RandomState(100+seed),
     label flips use RandomState(200+seed).
     """
-    manifest = json.loads((data_dir / "manifest.json").read_text(encoding="utf-8"))
-    embeddings = np.load(data_dir / "embeddings.npy")
-    index = {row["id"]: i for i, row in enumerate(manifest)}
-
-    train_rows = [row for row in manifest if row["split"] == "train"]
-    test_rows = [row for row in manifest if row["split"] == "test"]
-    X_test = embeddings[[index[row["id"]] for row in test_rows]]
-    y_test = np.array([label_to_int(row["label"]) for row in test_rows])
-
-    X_cat = embeddings[[index[row["id"]] for row in train_rows if row["label"] == CAT]]
-    X_dog = embeddings[[index[row["id"]] for row in train_rows if row["label"] == DOG]]
+    X_cat, X_dog, X_test, y_test = load_eval_data(data_dir, json_input=json_input)
     n_cat, n_dog = X_cat.shape[0], X_dog.shape[0]
     X_train = np.vstack([X_cat, X_dog])
     y_train = np.array([0] * n_cat + [1] * n_dog)
@@ -192,39 +351,33 @@ def run_c_sweep(data_dir: Path, c_values) -> dict:
 
 def main() -> None:
     args = parse_args()
-    data_dir: Path = args.data_dir
+    json_input = args.json_input is not None
+    data_dir: Path = args.json_input if json_input else args.data_dir
 
     if args.c_values:
         results = {"setup": {"model": "sklearn.linear_model.LogisticRegression", "params": CLF}}
-        results["c_sweep"] = run_c_sweep(data_dir, args.c_values)
+        results["c_sweep"] = run_c_sweep(data_dir, args.c_values, json_input=json_input)
         if args.json_out:
             args.json_out.write_text(json.dumps(results, indent=2), encoding="utf-8")
             print(f"\nWrote raw results to {args.json_out}")
         return
 
-    manifest = json.loads((data_dir / "manifest.json").read_text(encoding="utf-8"))
-    embeddings = np.load(data_dir / "embeddings.npy")
-    index = {row["id"]: i for i, row in enumerate(manifest)}
+    X_cat, X_dog, X_test, y_true_test = load_eval_data(data_dir, json_input=json_input)
+    train_size = int(X_cat.shape[0] + X_dog.shape[0])
+    test_size = int(X_test.shape[0])
 
-    train_rows = [row for row in manifest if row["split"] == "train"]
-    test_rows = [row for row in manifest if row["split"] == "test"]
-
-    X_test = embeddings[[index[row["id"]] for row in test_rows]]
-    y_true_test = np.array([label_to_int(row["label"]) for row in test_rows])
-
-    cat_train_rows = [row for row in train_rows if row["label"] == CAT]
-    dog_train_rows = [row for row in train_rows if row["label"] == DOG]
-    X_cat = embeddings[[index[row["id"]] for row in cat_train_rows]]
-    X_dog = embeddings[[index[row["id"]] for row in dog_train_rows]]
-
-    print(f"Training pool: {len(train_rows)} images (22 cats / 22 dogs)   Test pool: {len(test_rows)} images")
-    print(f"Embedding dimension: {embeddings.shape[1]}\n")
+    if json_input:
+        print(f"Input: service data trio from {data_dir} "
+              "(dataset.json / embeddings.json / labels.json)")
+    print(f"Training pool: {train_size} images ({X_cat.shape[0]} cats / {X_dog.shape[0]} dogs)   "
+          f"Test pool: {test_size} images")
+    print(f"Embedding dimension: {X_test.shape[1]}\n")
 
     results = {
         "setup": {
-            "n_train": len(train_rows),
-            "n_test": len(test_rows),
-            "dim": int(embeddings.shape[1]),
+            "n_train": train_size,
+            "n_test": test_size,
+            "dim": int(X_test.shape[1]),
             "model": "sklearn.linear_model.LogisticRegression",
             "params": CLF,
             "seeds": args.seeds,

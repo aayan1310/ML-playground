@@ -1,184 +1,2172 @@
-.counter {
-  font-size: 16px;
-  padding: 5px 10px;
-  border-radius: 5px;
-  color: var(--accent);
-  background: var(--accent-bg);
-  border: 2px solid transparent;
-  transition: border-color 0.3s;
-  margin-bottom: 24px;
+﻿/* Component styles for the storybook forest look (Stage 5a).
+   Placeholder scene + emoji mascots: no artwork extracted from the concept. */
 
-  &:hover {
-    border-color: var(--accent-border);
-  }
-  &:focus-visible {
-    outline: 2px solid var(--accent);
-    outline-offset: 2px;
-  }
-}
-
-.hero {
+/* ---------------------------------------------------------------- app shell */
+.app {
   position: relative;
-
-  .base,
-  .framework,
-  .vite {
-    inset-inline: 0;
-    margin: 0 auto;
-  }
-
-  .base {
-    width: 170px;
-    position: relative;
-    z-index: 0;
-  }
-
-  .framework,
-  .vite {
-    position: absolute;
-  }
-
-  .framework {
-    z-index: 1;
-    top: 34px;
-    height: 28px;
-    transform: perspective(2000px) rotateZ(300deg) rotateX(44deg) rotateY(39deg)
-      scale(1.4);
-  }
-
-  .vite {
-    z-index: 0;
-    top: 107px;
-    height: 26px;
-    width: auto;
-    transform: perspective(2000px) rotateZ(300deg) rotateX(40deg) rotateY(39deg)
-      scale(0.8);
-  }
-}
-
-#center {
+  min-height: 100svh;
   display: flex;
   flex-direction: column;
-  gap: 25px;
-  place-content: center;
-  place-items: center;
-  flex-grow: 1;
+  align-items: center;
+  padding: 18px 14px 34px;
+}
 
-  @media (max-width: 1024px) {
-    padding: 32px 20px 24px;
-    gap: 18px;
+/* Fit mode: applied ONLY while the menu or teacher screens show.
+   Root cause of the old menu/teacher scroll: each screen had its own
+   min-height:100svh INSIDE this padded .app (also 100svh) -> the document
+   was 100svh + 52px tall, and fixed-px content (robot ~398px tall, etc.)
+   overflowed short viewports on top of that.
+   Fix: lock the app to the dynamic viewport (100vh fallback) and let the
+   screens fill it exactly; all content is sized with clamp()/vh so nothing
+   is ever clipped. Never applied to Level 1 / Stage 1, whose scrolling
+   behaviour must stay untouched. */
+.app--fit {
+  height: 100vh;
+  height: 100dvh;
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* Background layer: the real menu background image. Stays behind every
+   screen; blurs (and stays blurred) once the lesson begins. Dedicated
+   layer so blur never affects UI. Scale avoids showing blurred edges. */
+.app__bg {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background-color: var(--sky-bottom);
+  background-image: url('./assets/menu-background.jpg');
+  background-size: cover;
+  background-position: center;
+  will-change: transform, filter;
+  transition:
+    filter 0.6s ease,
+    transform 0.6s ease;
+}
+
+.app__bg--blurred {
+  filter: blur(var(--bg-blur));
+  transform: scale(1.05);
+}
+
+/* Stage 1 classroom scene: a layer over the park (.app__bg stays mounted and
+   blurred underneath for Stage 2). It rises in when Stage 1 starts and drops
+   away to reveal the park when Stage 2 starts. Artwork source:
+   assets/classroom_background.jpg (copied to src/assets/). */
+.app__scene {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background-size: cover;
+  background-position: center;
+}
+
+.app__scene--classroom {
+  background-color: #f6ead0; /* wall tone while the image loads */
+  background-image: url('./assets/classroom-background.jpg');
+  /* Bottom-aligned so the floor is always on screen for the lesson teacher
+     to stand on (cover crops the ceiling instead on wide screens). */
+  background-position: center bottom;
+}
+
+.app__scene.is-in {
+  animation: scene-rise 0.8s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.app__scene.is-out {
+  animation: scene-drop 0.6s cubic-bezier(0.45, 0, 0.55, 1) both;
+}
+
+@keyframes scene-rise {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
   }
 }
 
-#next-steps {
+@keyframes scene-drop {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(100%);
+  }
+}
+
+.game-frame {
+  width: 100%;
+  max-width: 1120px;
+  background: var(--frame-bg);
+  border: 3px solid var(--frame-border);
+  border-radius: 30px;
+  box-shadow: var(--shadow-lift);
+  backdrop-filter: blur(6px);
+  padding: 20px 26px 30px;
+}
+
+/* Level 1 start screen only: auto margins centre the panel in the leftover
+   viewport height, and collapse to 0 when the content is taller than the
+   screen (the page then scrolls from the top instead of clipping).
+   Entrance: the teacher exits downward (0.6s), then the panel slides up
+   from the same direction with the same curve so the hand-off feels
+   continuous. `both` fill avoids a one-frame flash at the final position. */
+.game-frame--intro {
+  margin-block: auto;
+  animation: level-intro-enter 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes level-intro-enter {
+  from {
+    transform: translateY(40px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* Panel leaving for a scene change (Level 1 start -> Stage 1 classroom,
+   quiz -> Stage 2). An animation, not a transition, so it overrides the
+   `both` fill of level-intro-enter. */
+.game-frame--exiting {
+  animation: panel-exit 0.45s cubic-bezier(0.45, 0, 0.55, 1) forwards;
+  pointer-events: none;
+}
+
+@keyframes panel-exit {
+  to {
+    transform: translateY(40px);
+    opacity: 0;
+  }
+}
+
+.app-header {
   display: flex;
-  border-top: 1px solid var(--border);
-  text-align: left;
-
-  & > div {
-    flex: 1 1 0;
-    padding: 32px;
-    @media (max-width: 1024px) {
-      padding: 24px 20px;
-    }
-  }
-
-  .icon {
-    margin-bottom: 16px;
-    width: 22px;
-    height: 22px;
-  }
-
-  @media (max-width: 1024px) {
-    flex-direction: column;
-    text-align: center;
-  }
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
 }
 
-#docs {
-  border-right: 1px solid var(--border);
-
-  @media (max-width: 1024px) {
-    border-right: none;
-    border-bottom: 1px solid var(--border);
-  }
+/* Game header ("ML Playground") on the Level 1, gameplay and prediction
+   screens: reuses the single Superjoyful @font-face registered in index.css. */
+.app-header__title {
+  margin: 0;
+  font-family: 'Superjoyful', sans-serif;
+  font-weight: 800;
+  font-size: 1.5rem;
+  line-height: 1.2;
+  color: var(--ink);
+  letter-spacing: 0.5px;
 }
 
-#next-steps ul {
-  list-style: none;
-  padding: 0;
+.lang-select {
   display: flex;
+  align-items: center;
   gap: 8px;
-  margin: 32px 0 0;
+  font-size: 0.9rem;
+  color: var(--ink-soft);
+}
 
-  .logo {
-    height: 18px;
+.lang-select select {
+  border: 2px solid var(--pool-border);
+  border-radius: 10px;
+  padding: 6px 8px;
+  background: var(--panel-bg);
+  color: var(--ink);
+}
+
+/* ------------------------------------------------------------------ screens */
+.screen {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.stage-live {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-width: 0;
+}
+
+.stage-live--leaving {
+  transform: translateY(-36px);
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    transform 0.45s cubic-bezier(0.4, 0, 0.2, 1),
+    opacity 0.45s ease;
+}
+
+/* Robot scanning: the green glow follows Robo's eye beam. TrainSequence adds
+   .is-scanned to each sorted picture while the beam's sweeping stripe is on
+   it (previously a free-running band and pulse that ignored the beam).
+   Purely decorative; the real /train request decides the outcome. */
+.stage-live--scanning .tray .slot--filled {
+  transition:
+    border-color 0.18s ease,
+    box-shadow 0.18s ease;
+}
+
+.stage-live--scanning .tray .slot--filled.is-scanned {
+  border-color: #4ade80;
+  box-shadow:
+    0 0 0 3px rgba(74, 222, 128, 0.55),
+    0 0 22px rgba(74, 222, 128, 0.65);
+}
+
+.stage-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.stage-topbar .stage-header {
+  margin: 0;
+}
+
+.btn.help-button {
+  flex: 0 0 auto;
+  padding: 6px 16px;
+  border-radius: 999px;
+  border: 2px solid var(--pool-border);
+  background: var(--panel-bg);
+  color: var(--ink);
+  box-shadow: var(--shadow-soft);
+}
+
+.screen--center {
+  align-items: center;
+  justify-content: center;
+  min-height: 320px;
+}
+
+.screen__title {
+  margin: 0;
+}
+
+.stage-header {
+  margin: 0;
+  font-weight: 700;
+  color: var(--ink-soft);
+  font-size: 0.95rem;
+}
+
+.stage-instruction {
+  margin: 0;
+  font-size: 1.05rem;
+}
+
+.loading-text {
+  font-size: 1.1rem;
+  color: var(--ink-soft);
+}
+
+.spinner {
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  border: 5px solid var(--pool-border);
+  border-top-color: var(--train-green);
+  animation: spin 0.9s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
   }
+}
 
-  a {
-    color: var(--text-h);
-    font-size: 16px;
-    border-radius: 6px;
-    background: var(--social-bg);
-    display: flex;
-    padding: 6px 12px;
-    align-items: center;
+/* -------------------------------------------------------- guide + robot */
+.guide {
+  display: flex;
+  align-items: flex-end;
+  gap: 12px;
+  margin: 4px 0 6px;
+}
+
+.guide-robot {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.guide-robot__antenna {
+  width: 4px;
+  height: 12px;
+  background: var(--ink-soft);
+  border-radius: 2px;
+  position: relative;
+}
+
+.guide-robot__antenna::after {
+  content: '';
+  position: absolute;
+  top: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--focus);
+}
+
+.guide-robot__head {
+  width: 64px;
+  height: 52px;
+  border-radius: 18px;
+  background: linear-gradient(180deg, #eaf6fb, #cbe7f2);
+  border: 3px solid var(--cat-border);
+  box-shadow: var(--shadow-soft);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.guide-robot__eyes {
+  display: flex;
+  gap: 12px;
+}
+
+.guide-robot__eye {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--ink);
+}
+
+.guide-robot__mouth {
+  width: 22px;
+  height: 6px;
+  border-bottom: 3px solid var(--ink);
+  border-radius: 0 0 10px 10px;
+}
+
+/* Reserved visual area for the future scanning animation: gentle idle pulse
+   only while the real train request is in flight. No fake progress. */
+.guide-robot--scanning .guide-robot__head {
+  animation: robot-pulse 1.1s ease-in-out infinite;
+}
+
+@keyframes robot-pulse {
+  50% {
+    transform: translateY(-3px);
+  }
+}
+
+.guide-bubble {
+  position: relative;
+  background: var(--panel-bg);
+  border: 3px solid var(--pool-border);
+  border-radius: 18px;
+  padding: 10px 16px;
+  box-shadow: var(--shadow-soft);
+  max-width: 640px;
+}
+
+.guide-bubble::before {
+  content: '';
+  position: absolute;
+  left: -12px;
+  bottom: 14px;
+  border: 8px solid transparent;
+  border-right-color: var(--pool-border);
+}
+
+[dir='rtl'] .guide-bubble::before {
+  left: auto;
+  right: -12px;
+  border-right-color: transparent;
+  border-left-color: var(--pool-border);
+}
+
+.guide-bubble__text {
+  margin: 0;
+  font-size: 1.02rem;
+}
+
+/* --------------------------------------------------------------- intro */
+/* Level 1 start screen: content centred inside the translucent panel. */
+.intro-screen {
+  align-items: center;
+  text-align: center;
+  padding: clamp(4px, 2vh, 16px) 0 clamp(2px, 1vh, 8px);
+  gap: clamp(10px, 1.8vh, 18px);
+}
+
+.game-frame--intro .app-header {
+  justify-content: center;
+}
+
+/* Main heading of every stage-start screen (Intro, QuizPlaceholder, and
+   future screens built on .intro-screen). Trebuchet MS's heaviest face is
+   Bold (700); 800 only fell back to it, so the weight is set to the real
+   face and a thin same-colour stroke painted behind the fill thickens the
+   letters so they read clearly bold without changing font, size or colour. */
+.intro-screen__title {
+  margin: 0;
+  font-size: clamp(2.25rem, 5vw, 3rem);
+  font-weight: 700;
+  line-height: 1.1;
+  -webkit-text-stroke: 0.045em currentColor;
+  paint-order: stroke fill;
+}
+
+.intro-screen__stage {
+  margin: 0;
+  font-size: clamp(1.15rem, 1.8vw, 1.4rem);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+
+/* Teacher + speech bubble: reuses .teacher-bubble visuals, scaled down to fit
+   inside the start panel. Centred vertically so the bubble sits at the
+   teacher's torso (the tail points left at him). */
+.intro-screen__teacher {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(10px, 1.6vw, 18px);
+  width: 100%;
+  max-width: 720px;
+}
+
+/* Stage-start screens only (the lesson, training and prediction teachers
+   have their own classes). Height-only sizing keeps the 333x750 proportions. */
+.intro-screen__character {
+  height: clamp(130px, 27vh, 280px);
+  width: auto;
+  flex: 0 0 auto;
+  filter: drop-shadow(0 6px 12px rgba(39, 64, 82, 0.3));
+}
+
+.intro-screen .intro-screen__bubble {
+  flex: 1;
+  min-height: 0;
+  max-width: 520px;
+  padding: clamp(10px, 1.6vh, 14px) clamp(14px, 2vw, 18px);
+  text-align: start;
+}
+
+.intro-screen .teacher-bubble__text {
+  min-height: 0;
+  font-size: clamp(1rem, 1.7vw, 1.25rem);
+}
+
+.intro-screen__text {
+  max-width: 560px;
+  margin: 0;
+  font-size: 1.05rem;
+  color: var(--ink);
+}
+
+/* Short viewports (e.g. landscape phones): compact spacing so the panel
+   needs as little scrolling as possible; scrolling stays available. */
+@media (max-height: 520px) {
+  .game-frame--intro {
+    padding-block: 12px 16px;
+  }
+  .intro-screen {
+    padding-block: 2px;
     gap: 8px;
-    text-decoration: none;
-    transition: box-shadow 0.3s;
-
-    &:hover {
-      box-shadow: var(--shadow);
-    }
-    .button-icon {
-      height: 18px;
-      width: 18px;
-    }
   }
-
-  @media (max-width: 1024px) {
-    margin-top: 20px;
-    flex-wrap: wrap;
-    justify-content: center;
-
-    li {
-      flex: 1 1 calc(50% - 8px);
-    }
-
-    a {
-      width: 100%;
-      justify-content: center;
-      box-sizing: border-box;
-    }
+  .intro-screen__title {
+    font-size: clamp(1.8rem, 4vw, 2.4rem);
+  }
+  .intro-screen__character {
+    height: 100px;
+  }
+  .intro-screen .teacher-bubble__text,
+  .intro-screen__text {
+    font-size: 0.95rem;
   }
 }
 
-#spacer {
-  height: 88px;
-  border-top: 1px solid var(--border);
-  @media (max-width: 1024px) {
-    height: 48px;
+/* Narrow / portrait screens: stack the teacher above the bubble and point
+   the tail up at the teacher. */
+@media (orientation: portrait) {
+  .intro-screen__teacher {
+    flex-direction: column;
+    align-items: center;
+  }
+  .intro-screen .intro-screen__bubble {
+    width: 100%;
   }
 }
 
-.ticks {
+/* --------------------------------------------------------------- panels */
+.panel {
+  background: var(--panel-bg);
+  border-radius: var(--panel-radius);
+  box-shadow: var(--shadow-soft);
+  border: 2px solid rgba(255, 255, 255, 0.9);
+  padding: 16px 18px;
+}
+
+.panel__title {
+  margin: 0 0 8px;
+  font-size: 1.25rem;
+}
+
+.trained-panel,
+.complete-panel {
+  text-align: center;
+  align-items: center;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.complete-panel__score {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--train-green-dark);
+}
+
+.complete-panel__end {
+  font-size: 1.15rem;
+  font-weight: 700;
+}
+
+.complete-panel__note {
+  color: var(--ink-soft);
+  font-size: 0.95rem;
+}
+
+/* -------------------------------------------------------------- sorting */
+.sort-layout {
+  display: grid;
+  grid-template-columns: 3fr 2fr;
+  gap: 16px;
+  align-items: start;
+}
+
+.pool-panel {
+  background: var(--pool-bg);
+  border: 2px solid var(--pool-border);
+}
+
+.pool-panel__header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.pool-panel__title {
+  margin: 0;
+  font-size: 1.15rem;
+}
+
+.pool-panel__count {
+  font-weight: 700;
+  color: var(--ink-soft);
+  background: rgba(255, 255, 255, 0.75);
+  padding: 3px 10px;
+  border-radius: 999px;
+}
+
+.pool-grid {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(92px, 1fr));
+  gap: 10px;
+}
+
+.pool-grid__item,
+.test-grid__item {
+  margin: 0;
+}
+
+.pool-panel__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.pool-panel__hint {
+  flex-basis: 100%;
+  margin: 0;
+  min-height: 1.3em;
+  color: var(--ink-soft);
+  font-size: 0.95rem;
+}
+
+/* ---------------------------------------------------------- image cards */
+.image-card {
+  position: relative;
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: 3px solid transparent;
+  border-radius: var(--card-radius);
+  background: var(--panel-bg);
+  box-shadow: var(--shadow-soft);
+  cursor: pointer;
+  overflow: hidden;
+  transition: transform 0.12s ease, border-color 0.12s ease;
+}
+
+.image-card img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: cover;
+  pointer-events: none;
+}
+
+.image-card:hover:not(:disabled) {
+  transform: translateY(-2px);
+}
+
+.image-card.is-selected {
+  border-color: var(--focus);
+  transform: translateY(-2px);
+}
+
+.image-card:disabled {
+  cursor: default;
+  opacity: 0.75;
+}
+
+.image-card.is-used {
+  opacity: 0.45;
+  filter: grayscale(0.6);
+}
+
+.image-card__mark {
+  position: absolute;
+  inset-inline: 0;
+  bottom: 4px;
+  text-align: center;
+  font-size: 0.72rem;
+  font-weight: 700;
+  background: rgba(39, 64, 82, 0.75);
+  color: #fff;
+  border-radius: 8px;
+  margin-inline: 8px;
+  padding: 1px 0;
+}
+
+/* ---------------------------------------------------------------- trays */
+.trays {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.tray {
+  border-radius: var(--panel-radius);
+  border: 3px solid;
+  padding: 12px 14px;
+  box-shadow: var(--shadow-soft);
+}
+
+.tray--cat {
+  background: var(--cat-bg);
+  border-color: var(--cat-border);
+}
+
+.tray--dog {
+  background: var(--dog-bg);
+  border-color: var(--dog-border);
+}
+
+.tray__header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.tray__mascot {
+  font-size: 1.7rem;
+  line-height: 1;
+  background: rgba(255, 255, 255, 0.8);
+  border-radius: 50%;
+  width: 42px;
+  height: 42px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--shadow-soft);
+}
+
+.tray__title {
+  margin: 0;
+  font-size: 1.15rem;
+  flex: 1;
+}
+
+.tray--cat .tray__title {
+  color: var(--cat-strong);
+}
+
+.tray--dog .tray__title {
+  color: var(--dog-strong);
+}
+
+.tray__counter {
+  font-weight: 700;
+  background: rgba(255, 255, 255, 0.85);
+  padding: 3px 10px;
+  border-radius: 999px;
+}
+
+.tray__slots {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.slot {
+  margin: 0;
+  aspect-ratio: 1;
+  border-radius: var(--card-radius);
+  border: 3px dashed rgba(39, 64, 82, 0.25);
+  background: rgba(255, 255, 255, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.slot--filled {
+  border-style: solid;
+  border-color: rgba(255, 255, 255, 0.9);
+}
+
+.slot.is-wrong {
+  border-color: var(--wrong);
+  animation: wrong-glow 1s ease-in-out infinite alternate;
+}
+
+@keyframes wrong-glow {
+  from {
+    box-shadow: 0 0 0 0 rgba(228, 87, 46, 0.15);
+  }
+  to {
+    box-shadow: 0 0 0 6px rgba(228, 87, 46, 0.35);
+  }
+}
+
+.slot__placeholder {
+  font-size: 0.85rem;
+  color: var(--ink-soft);
+}
+
+.slot__remove {
   position: relative;
   width: 100%;
+  height: 100%;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+}
 
-  &::before,
-  &::after {
-    content: '';
-    position: absolute;
-    top: -4.5px;
-    border: 5px solid transparent;
-  }
+.slot__remove img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  pointer-events: none;
+}
 
-  &::before {
-    left: 0;
-    border-left-color: var(--border);
+.slot__badge {
+  position: absolute;
+  top: 4px;
+  inset-inline-end: 4px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: rgba(228, 87, 46, 0.92);
+  color: #fff;
+  font-weight: 700;
+  font-size: 0.85rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.12s ease;
+}
+
+.slot__remove:hover .slot__badge,
+.slot__remove:focus-visible .slot__badge {
+  opacity: 1;
+}
+
+/* ----------------------------------------------------------- train bar */
+.train-bar {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.train-bar__status {
+  margin: 0;
+  font-weight: 700;
+  color: var(--ink);
+  background: rgba(255, 255, 255, 0.85);
+  align-self: center;
+  padding: 6px 16px;
+  border-radius: 999px;
+}
+
+.train-bar__notice {
+  margin: 0;
+  align-self: center;
+  color: var(--wrong);
+  font-weight: 700;
+}
+
+.train-bar__buttons {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+}
+
+/* -------------------------------------------------------------- buttons */
+.btn {
+  border: none;
+  border-radius: 16px;
+  padding: 10px 18px;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  color: #fff;
+  background: var(--ink-soft);
+  box-shadow: 0 4px 0 rgba(39, 64, 82, 0.25);
+  transition: transform 0.1s ease, filter 0.1s ease;
+}
+
+.btn:hover:not(:disabled) {
+  filter: brightness(1.06);
+}
+
+.btn:active:not(:disabled) {
+  transform: translateY(2px);
+  box-shadow: 0 2px 0 rgba(39, 64, 82, 0.25);
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: default;
+  box-shadow: none;
+}
+
+.btn--primary {
+  background: var(--reveal-purple);
+}
+
+.btn--big {
+  font-size: 1.15rem;
+  padding: 12px 28px;
+}
+
+.btn--train {
+  background: var(--train-green);
+  font-size: 1.15rem;
+  padding: 12px 30px;
+  border-radius: 20px;
+  box-shadow: 0 5px 0 var(--train-green-dark);
+}
+
+.btn--train:active:not(:disabled) {
+  box-shadow: 0 2px 0 var(--train-green-dark);
+}
+
+.btn--reveal {
+  background: var(--reveal-purple);
+  font-size: 1.1rem;
+}
+
+.btn--cat {
+  background: var(--cat-strong);
+}
+
+.btn--dog {
+  background: var(--dog-strong);
+}
+
+.btn--ghost {
+  background: rgba(39, 64, 82, 0.12);
+  color: var(--ink);
+  box-shadow: none;
+}
+
+/* ------------------------------------------------------------- predict */
+.predict-screen {
+  gap: 16px;
+}
+
+/* Subheading + description that used to live in a solid white box; now they
+   sit directly on the translucent game frame (same treatment as the sorting
+   instruction line), leaving the frame's translucent panel as the header. */
+.predict-header {
+  margin: 0;
+}
+
+.predict-header__title {
+  margin: 0 0 6px;
+  font-size: 1.35rem;
+}
+
+.predict-header__intro {
+  margin: 0;
+  font-size: 1.05rem;
+}
+
+.predict-header__round {
+  margin: 8px 0 0;
+  font-weight: 700;
+  color: var(--ink-soft);
+}
+
+/* Pink rounded pool holding the 16 test pictures, matching the sorting game's
+   coloured tray treatment but in the prediction screen's pink theme. */
+.predict-pool {
+  background: var(--predict-pool-bg);
+  border: 3px solid var(--predict-pool-border);
+  border-radius: var(--panel-radius);
+  box-shadow: var(--shadow-soft);
+  padding: 16px;
+}
+
+/* Desktop: exactly two rows of eight images. */
+.test-grid {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(8, minmax(0, 1fr));
+  gap: 10px;
+}
+
+/* Large view of the selected test picture (the model's current question). */
+.predict-preview {
+  margin: 0;
+  align-self: center;
+  width: min(100%, 320px);
+  aspect-ratio: 1;
+  border-radius: var(--card-radius);
+  border: 3px solid var(--predict-pool-border);
+  box-shadow: var(--shadow-soft);
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.55);
+  padding: 8px;
+}
+
+.predict-preview img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: calc(var(--card-radius) - 4px);
+}
+
+.predict-actions {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  /* The single progress button stays centred; the edge characters flank it on
+     the far left/right and never cover it (see .predict-bubble max-width). */
+  padding-bottom: clamp(6px, 1.4vh, 14px);
+}
+
+/* The one progression control for the whole prediction conversation. It keeps
+   its position and a stable minimum width so switching its label through
+   Ask model -> Reveal answer -> Make next prediction never shifts the layout. */
+.predict-progress-btn {
+  min-width: min(240px, 62vw);
+  justify-content: center;
+}
+
+.prediction-card,
+.reveal-card {
+  border-radius: var(--panel-radius);
+  padding: 12px 16px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  box-shadow: var(--shadow-soft);
+}
+
+.prediction-card {
+  background: var(--pool-bg);
+  border: 2px solid var(--pool-border);
+}
+
+.prediction-card__guess {
+  margin: 0;
+  font-size: 1.15rem;
+  font-weight: 700;
+}
+
+.prediction-card__confidence,
+.prediction-card__probs {
+  margin: 0;
+  color: var(--ink-soft);
+}
+
+.confidence-bar {
+  height: 14px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.8);
+  overflow: hidden;
+  border: 2px solid var(--pool-border);
+}
+
+.confidence-bar__fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--train-green), var(--cat-strong));
+  border-radius: 999px;
+}
+
+.reveal-card--right {
+  background: #e3f8ea;
+  border: 2px solid var(--right);
+}
+
+.reveal-card--wrong {
+  background: #fdeee8;
+  border: 2px solid var(--wrong);
+}
+
+.reveal-card p {
+  margin: 0;
+  font-weight: 700;
+  font-size: 1.08rem;
+}
+
+/* ------------------------------- prediction characters (Robo + teacher) */
+/* Robo and the teacher speak the prediction and the answer from the edges of
+   the viewport, matching the established sorting/scanning presentation: the
+   teacher enters from the left, the robot from the right, and each bubble hugs
+   the screen edge instead of sitting inside the translucent panel. The layer
+   is fixed and non-interactive, so it never covers the image pool, the
+   selected-image preview, or the single panel progress button. Reuses the
+   train-sequence entrance keyframes and the shared .teacher-bubble visuals. */
+.predict-characters {
+  position: fixed;
+  inset: 0;
+  z-index: 65;
+  pointer-events: none;
+}
+
+.predict-actor {
+  position: absolute;
+  bottom: clamp(8px, 2.6vh, 24px);
+  display: flex;
+  align-items: flex-end;
+  gap: clamp(8px, 1.2vw, 16px);
+  /* Each actor stays in its own side zone so the panel's centre column (the
+     preview and the progress button) remains visible and clickable. */
+  max-width: min(48vw, 620px);
+  pointer-events: none;
+}
+
+.predict-actor--robo {
+  right: clamp(8px, 2vw, 24px);
+  transform-origin: right bottom;
+  animation: train-robot-in 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.predict-actor--teacher {
+  left: clamp(8px, 2vw, 24px);
+  transform-origin: left bottom;
+  animation: train-teacher-in 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.predict-actor__character {
+  height: clamp(96px, 20vh, 190px);
+  width: auto;
+  flex: 0 0 auto;
+  filter: drop-shadow(0 8px 14px rgba(39, 64, 82, 0.3));
+}
+
+.predict-actor--robo .predict-actor__character {
+  height: clamp(110px, 23vh, 220px);
+}
+
+.predict-bubble {
+  flex: 1 1 auto;
+  min-width: 0;
+  /* Never reach the centred progress button: leave room for the button half
+     width, the character and the gaps. Shrinks hard on narrow viewports. */
+  max-width: max(88px, min(290px, calc(50vw - 300px)));
+  min-height: 0;
+  padding: clamp(10px, 1.8vh, 16px) clamp(12px, 1.8vw, 18px);
+  animation: train-bubble-in 0.4s ease 0.12s backwards;
+  /* Bubbles are display-only now: all progression happens through the single
+     panel button, so the bubble never needs to receive pointer events. */
+  pointer-events: none;
+}
+
+/* Two classes so this outranks the base .teacher-bubble rule (max-width:620px,
+   defined later in this file), which would otherwise widen the prediction
+   bubbles back over the centred progress button. */
+.teacher-bubble.predict-bubble {
+  max-width: max(88px, min(290px, calc(50vw - 300px)));
+}
+
+.predict-bubble__text {
+  margin: 0;
+  font-size: clamp(0.82rem, 1.5vw, 1.15rem);
+  line-height: 1.35;
+  font-weight: 700;
+  overflow-wrap: break-word;
+}
+
+.predict-bubble__meter {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.predict-bubble__confidence {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--ink-soft);
+}
+
+.predict-bubble--robo {
+  transform-origin: right bottom;
+}
+
+/* Robot tail on the RIGHT, pointing towards the robot on its right. Written
+   with both classes so it outranks the base .teacher-bubble::before rule (the
+   teacher's left-side tail), which is defined later in this file. */
+.teacher-bubble.predict-bubble--robo::before {
+  left: auto;
+  right: -9px;
+  border: 0;
+  border-top: 3px solid var(--pool-border);
+  border-right: 3px solid var(--pool-border);
+  transform: rotate(45deg);
+}
+
+.predict-bubble--teacher {
+  transform-origin: left bottom;
+}
+
+.predict-bubble--right {
+  border-color: var(--right);
+  background: #e3f8ea;
+}
+
+.predict-bubble--wrong {
+  border-color: var(--wrong);
+  background: #fdeee8;
+}
+
+/* Narrow / portrait viewports: keep the teacher on the left and the robot on
+   the right (same presentation), but shrink both characters and their bubbles
+   hard so the centred progress button is never covered. */
+@media (orientation: portrait) {
+  .predict-actor {
+    bottom: 6px;
   }
-  &::after {
-    right: 0;
-    border-right-color: var(--border);
+  .predict-actor--robo {
+    right: 4px;
+  }
+  .predict-actor--teacher {
+    left: 4px;
+  }
+  .predict-actor__character {
+    height: clamp(48px, 8vh, 96px);
+  }
+  .predict-actor--robo .predict-actor__character {
+    height: clamp(52px, 9vh, 104px);
+  }
+  .teacher-bubble.predict-bubble {
+    max-width: max(60px, min(220px, calc(50vw - 250px)));
+    padding: 6px 8px;
+  }
+  .predict-bubble__text {
+    font-size: clamp(0.72rem, 3.2vw, 0.95rem);
+  }
+  .predict-bubble__confidence {
+    font-size: 0.72rem;
+  }
+  .predict-actions {
+    padding-bottom: 4px;
+  }
+  .predict-progress-btn {
+    min-width: min(180px, 58vw);
   }
 }
+
+/* Very short landscape viewports: shrink the edge characters so they stay out
+   of the way of the panel content. */
+@media (max-height: 560px) {
+  .predict-actor__character {
+    height: min(24vh, 140px);
+  }
+  .predict-actor--robo .predict-actor__character {
+    height: min(27vh, 165px);
+  }
+}
+
+/* --------------------------------------------------------------- errors */
+.error-panel {
+  border-radius: var(--panel-radius);
+  background: #fdeee8;
+  border: 2px solid var(--wrong);
+  padding: 12px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: center;
+  text-align: center;
+}
+
+.error-panel__text {
+  margin: 0;
+  font-weight: 700;
+  color: var(--wrong);
+}
+
+.error-panel__code {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--ink-soft);
+}
+
+.error-panel__hint {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--ink);
+}
+
+/* ----------------------------------------------------------- responsive */
+@media (max-width: 880px) {
+  .game-frame {
+    padding: 14px 14px 22px;
+    border-radius: 22px;
+  }
+
+  .sort-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .trays {
+    order: 2;
+  }
+
+  .guide {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  [dir='rtl'] .guide {
+    align-items: flex-end;
+  }
+
+  .guide-robot {
+    align-self: flex-start;
+  }
+
+  [dir='rtl'] .guide-robot {
+    align-self: flex-end;
+  }
+
+  /* Prediction pool: fewer columns per row so images stay tappable and the
+     page never overflows horizontally on narrower screens. */
+  .test-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 520px) {
+  .test-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .predict-pool {
+    padding: 12px;
+  }
+}
+
+/* ------------------------------------------------- persistent top controls */
+.top-controls {
+  position: fixed;
+  /* Physical top-right in every language (never mirrored). */
+  top: 10px;
+  right: 10px;
+  z-index: 100;
+}
+
+.music-btn {
+  min-width: 44px;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid rgba(255, 255, 255, 0.9);
+  border-radius: 12px;
+  cursor: pointer;
+  box-shadow: var(--shadow-soft);
+  padding: 0;
+}
+
+.music-btn--on {
+  background: var(--train-green);
+  color: #fff;
+}
+
+.music-btn--off {
+  background: rgba(39, 64, 82, 0.25);
+  color: var(--ink);
+}
+
+/* ------------------------------------------------------------- main menu */
+/* Fills .app--fit exactly and centres one glass panel both ways. Everything
+   is sized with clamp()/min() so it fits 1366x768, 1920x1080, 400x800 and
+   800x400 with no page scroll (app--fit viewport lock from the previous
+   task). Tune the glass look via --panel-blur / --panel-alpha (index.css). */
+.menu-screen {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: clamp(12px, 3vh, 24px) 18px;
+  text-align: center;
+  transition: transform 0.6s cubic-bezier(0.45, 0, 0.55, 1);
+}
+
+.menu-screen--exiting {
+  transform: translateY(110vh);
+}
+
+.menu-panel {
+  width: min(640px, 90vw);
+  max-width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: clamp(14px, 3vh, 28px);
+  padding: clamp(20px, 4vh, 36px) clamp(20px, 5vw, 44px);
+  border-radius: clamp(22px, 4vw, 36px);
+  background: rgba(255, 255, 255, var(--panel-alpha));
+  -webkit-backdrop-filter: blur(var(--panel-blur));
+  backdrop-filter: blur(var(--panel-blur));
+  box-shadow:
+    0 18px 40px rgba(39, 64, 82, 0.22),
+    0 1px 0 rgba(255, 255, 255, 0.6) inset;
+}
+
+/* Fallback: no backdrop-filter support -> more opaque so the title stays
+   readable over the photo. */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .menu-panel {
+    background: rgba(255, 255, 255, 0.94);
+  }
+}
+
+.menu-panel__title {
+  margin: 0;
+  font-family: 'Superjoyful', sans-serif;
+  font-size: clamp(2rem, 5vw, 3.5rem);
+  font-weight: 800;
+  line-height: 1.12;
+  letter-spacing: 0.2px;
+  color: var(--ink);
+  text-wrap: balance;
+}
+
+/* Same size/sound/guard as before â€” only its position moved (inside panel). */
+.menu-panel__begin {
+  font-size: clamp(1.1rem, 4vh, 1.4rem);
+  padding: clamp(10px, 3vh, 16px) clamp(28px, 6vw, 44px);
+}
+
+.menu-panel__lang {
+  background: rgba(255, 255, 255, 0.85);
+  border-radius: 12px;
+  padding: 8px 14px;
+}
+
+/* Extra-short landscape (e.g. 800x400 phones, small windows): tighten so
+   every element still fits with room to spare. */
+@media (orientation: landscape) and (max-height: 480px) {
+  .menu-panel {
+    gap: 10px;
+    padding: 14px clamp(18px, 4vw, 28px);
+    border-radius: 20px;
+  }
+  .menu-panel__title {
+    font-size: clamp(1.5rem, 4.5vw, 2rem);
+  }
+  .menu-panel__begin {
+    font-size: clamp(1rem, 3.6vh, 1.2rem);
+    padding: clamp(8px, 3vh, 12px) clamp(20px, 5vw, 32px);
+  }
+}
+
+
+/* ----------------------------------------------------- teacher intro */
+/* Fills .app--fit exactly and CENTRES the teacher + bubble group vertically
+   (slide-up entrance animation unchanged: it settles onto the centre). */
+.teacher-screen {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: clamp(12px, 3vh, 24px) 18px;
+  animation: teacher-enter 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+  transition:
+    transform 0.6s cubic-bezier(0.45, 0, 0.55, 1),
+    opacity 0.6s ease;
+}
+
+@keyframes teacher-enter {
+  from {
+    transform: translateY(45vh);
+    opacity: 0.4;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.teacher-screen--exiting {
+  transform: translateY(45vh);
+  opacity: 0;
+}
+
+/* An exit can start while the entrance is still running (e.g. Skip pressed
+   early): dropping the animation lets the exit transition start from the
+   teacher's current position instead of jumping. */
+.teacher-screen.teacher-screen--exiting {
+  animation: none;
+}
+
+/* Stage 1 lesson: App mounts this only once the classroom has finished
+   rising, so no delay is needed. The teacher starts fully below the viewport
+   (110% of the screen-tall section) at full opacity, so there is never a
+   faded copy visible mid-screen, and leaves the same way. */
+.teacher-screen--lesson {
+  animation: lesson-teacher-enter 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.teacher-screen--lesson.teacher-screen--exiting {
+  transform: translateY(110%);
+  opacity: 1;
+}
+
+@keyframes lesson-teacher-enter {
+  from {
+    transform: translateY(110%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+.teacher-bubble__caption {
+  margin: 0;
+  font-size: clamp(0.8rem, 1.2vw, 0.95rem);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+
+.teacher-screen__stage {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(14px, 2vw, 24px);
+  max-width: 980px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+/* teacher.png is 333x750 (h/w 2.25): ~62% of viewport height on desktop
+   (within the 55-70% target), capped so it can never overflow â€” width
+   derives from the fixed aspect ratio (<=249px at the 560px cap). */
+.teacher-screen__character {
+  height: clamp(220px, 62vh, 560px);
+  width: auto;
+  flex: 0 0 auto;
+  filter: drop-shadow(0 8px 14px rgba(39, 64, 82, 0.3));
+}
+
+.teacher-bubble {
+  position: relative;
+  background: var(--panel-bg);
+  border: 3px solid var(--pool-border);
+  border-radius: 20px;
+  box-shadow: var(--shadow-lift);
+  padding: clamp(12px, 2vh, 18px) clamp(14px, 2vw, 20px);
+  flex: 1;
+  max-width: 620px;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(8px, 1.6vh, 14px);
+  min-height: 140px;
+}
+
+/* Tail: a rotated square whose two exposed borders continue the bubble's
+   outline. Its white fill sits over the bubble's own border where they meet,
+   so the tail reads as part of the bubble (not a separate arrow inside it)
+   and protrudes into the gap towards the teacher. */
+.teacher-bubble::before {
+  content: '';
+  position: absolute;
+  left: -9px;
+  top: calc(50% - 7px);
+  width: 14px;
+  height: 14px;
+  background: var(--panel-bg);
+  border-left: 3px solid var(--pool-border);
+  border-bottom: 3px solid var(--pool-border);
+  transform: rotate(45deg);
+}
+
+[dir='rtl'] .teacher-bubble::before {
+  left: auto;
+  right: -9px;
+  border: 0;
+  border-top: 3px solid var(--pool-border);
+  border-right: 3px solid var(--pool-border);
+}
+
+.teacher-bubble__text {
+  margin: 0;
+  font-size: clamp(1.1rem, 2.2vw, 1.75rem);
+  line-height: 1.45;
+  min-height: 3.2em;
+}
+
+.teacher-bubble__caret {
+  display: inline-block;
+  width: 2px;
+  height: 1.1em;
+  margin-inline-start: 2px;
+  background: var(--ink);
+  vertical-align: text-bottom;
+  animation: caret-blink 0.9s steps(1) infinite;
+}
+
+@keyframes caret-blink {
+  50% {
+    opacity: 0;
+  }
+}
+
+.teacher-bubble__next {
+  align-self: flex-start;
+}
+
+.teacher-screen__skip {
+  position: fixed;
+  /* Physical bottom-right in every language. */
+  right: 16px;
+  bottom: 16px;
+  z-index: 20;
+  background: rgba(255, 255, 255, 0.9);
+  color: var(--ink);
+}
+
+/* ------------------------------------- portrait phones: stack the group */
+@media (orientation: portrait) {
+  .teacher-screen__stage {
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: clamp(12px, 2vh, 20px);
+  }
+  .teacher-screen__character {
+    height: min(42vh, 320px);
+  }
+  .teacher-bubble {
+    margin-bottom: 0;
+    min-height: 120px;
+    width: 100%;
+  }
+  /* Tail now points UP at the stacked teacher. */
+  .teacher-bubble::before,
+  [dir='rtl'] .teacher-bubble::before {
+    left: calc(50% - 7px);
+    right: auto;
+    top: -9px;
+    bottom: auto;
+    border: 0;
+    border-top: 3px solid var(--pool-border);
+    border-left: 3px solid var(--pool-border);
+    transform: rotate(45deg);
+  }
+}
+
+/* Very short portrait phones (e.g. 320x480): shrink further, still fits. */
+@media (orientation: portrait) and (max-height: 640px) {
+  .teacher-screen__character {
+    height: min(26vh, 150px);
+  }
+}
+
+/* Extra-short landscape (e.g. 800x400): keep the group centred, shrink to
+   fit alongside the bubble. */
+@media (orientation: landscape) and (max-height: 460px) {
+  .teacher-screen {
+    padding: 10px 14px;
+  }
+  .teacher-screen__character {
+    height: min(56vh, 200px);
+  }
+  .teacher-bubble {
+    min-height: 110px;
+  }
+}
+
+/* ------------------------------------- Stage 1 lesson: grounded teacher */
+/* Lesson only (the intro teacher above is unchanged). The classroom image is
+   bottom-aligned (.app__scene--classroom), so its floor always fills at
+   least the bottom ~15% of the screen; the teacher's feet are placed 6vh
+   above the bottom edge, inside that floor band.
+   teacher.png is 333x750 with 27px (3.6%) of transparent padding under the
+   feet, and .app adds 34px of bottom padding in fit mode, so:
+     margin-bottom = 6vh - 34px - 3.6% of the image height
+   puts the visible feet (not the image box) at 6vh. */
+.teacher-screen--lesson {
+  --lesson-teacher-h: clamp(260px, 80vh, 860px);
+  justify-content: flex-end;
+  padding-bottom: 0;
+}
+
+.teacher-screen--lesson .teacher-screen__stage {
+  align-items: flex-end;
+}
+
+.teacher-screen--lesson .teacher-screen__character {
+  height: var(--lesson-teacher-h);
+  margin-bottom: calc(6vh - 34px - var(--lesson-teacher-h) * 0.036);
+}
+
+/* Bubble beside the teacher at chest height, clear of the face and feet. */
+.teacher-screen--lesson .teacher-bubble {
+  align-self: center;
+}
+
+/* Portrait: bubble on top, teacher standing on the floor below it, with the
+   tail pointing down at the teacher. */
+@media (orientation: portrait) {
+  .teacher-screen--lesson {
+    --lesson-teacher-h: min(50vh, 440px);
+  }
+  .teacher-screen--lesson .teacher-screen__stage {
+    flex-direction: column-reverse;
+    align-items: center;
+    gap: clamp(6px, 1.5vh, 14px);
+  }
+  .teacher-screen--lesson .teacher-bubble {
+    align-self: stretch;
+  }
+  .teacher-screen--lesson .teacher-bubble::before,
+  [dir='rtl'] .teacher-screen--lesson .teacher-bubble::before {
+    left: calc(50% - 7px);
+    right: auto;
+    top: auto;
+    bottom: -9px;
+    border: 0;
+    border-bottom: 3px solid var(--pool-border);
+    border-right: 3px solid var(--pool-border);
+    transform: rotate(45deg);
+  }
+}
+
+@media (orientation: portrait) and (max-height: 640px) {
+  .teacher-screen--lesson {
+    --lesson-teacher-h: min(40vh, 260px);
+  }
+}
+
+/* ----------------------------------- Level 1 first-step teacher guidance */
+.stage-guide {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-start;
+  padding: clamp(10px, 2.5vh, 26px) clamp(8px, 1.5vw, 20px);
+  pointer-events: none;
+}
+
+.stage-guide__blocker {
+  position: absolute;
+  inset: 0;
+  pointer-events: auto;
+}
+
+.stage-guide__stage {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: flex-end;
+  gap: clamp(8px, 1.6vw, 20px);
+  max-width: min(720px, 96vw);
+  pointer-events: auto;
+  transform-origin: left bottom;
+  animation: stage-guide-in 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.stage-guide__character {
+  height: clamp(150px, 30vh, 290px);
+  width: auto;
+  flex: 0 0 auto;
+  filter: drop-shadow(0 8px 14px rgba(39, 64, 82, 0.3));
+  transform-origin: 25% 85%;
+  animation: stage-guide-lean 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.stage-guide__bubble {
+  flex: 1;
+  min-width: 0;
+  max-width: 460px;
+  max-height: min(55vh, 420px);
+  min-height: 0;
+  padding: clamp(10px, 1.8vh, 16px) clamp(12px, 2vw, 18px);
+  overflow-y: auto;
+  animation: stage-guide-bubble 0.45s ease 0.16s backwards;
+}
+
+.stage-guide .teacher-bubble__text {
+  font-size: clamp(0.98rem, 1.5vw, 1.15rem);
+  line-height: 1.4;
+  min-height: 3.6em;
+}
+
+@keyframes stage-guide-in {
+  from {
+    transform: translateX(calc(-100% - 120px));
+    opacity: 0;
+  }
+  55% {
+    opacity: 1;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes stage-guide-lean {
+  from {
+    transform: rotate(-13deg) translateY(14px);
+  }
+  70% {
+    transform: rotate(2deg) translateY(0);
+  }
+  to {
+    transform: rotate(0);
+  }
+}
+
+@keyframes stage-guide-bubble {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.stage-guide--exiting .stage-guide__stage {
+  animation: none;
+  transform: translateX(calc(-100% - 140px)) translateY(12px);
+  opacity: 0;
+  transition:
+    transform 0.6s cubic-bezier(0.45, 0, 0.55, 1),
+    opacity 0.55s ease;
+}
+
+.stage-guide--exiting .stage-guide__character {
+  animation: none;
+  transform: rotate(12deg) translateY(16px);
+  transition: transform 0.6s cubic-bezier(0.45, 0, 0.55, 1);
+}
+
+.stage-guide--exiting .stage-guide__bubble {
+  animation: none;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+@media (orientation: portrait) {
+  .stage-guide {
+    padding: 12px 10px;
+  }
+  .stage-guide__stage {
+    flex-direction: column;
+    align-items: center;
+    width: min(100%, 560px);
+    max-height: calc(100svh - 24px);
+  }
+  .stage-guide__character {
+    height: clamp(110px, 21vh, 190px);
+  }
+  .stage-guide__bubble {
+    width: 100%;
+    max-width: none;
+  }
+}
+
+@media (max-height: 560px) {
+  .stage-guide__character {
+    height: min(26vh, 140px);
+  }
+  .stage-guide .teacher-bubble__text {
+    font-size: 0.95rem;
+    min-height: 2.8em;
+  }
+}
+
+/* ------------------------------- Level 1 teacher + robot training sequence */
+.train-sequence {
+  position: fixed;
+  inset: 0;
+  z-index: 70;
+  pointer-events: none;
+}
+
+.train-sequence__blocker {
+  position: absolute;
+  inset: 0;
+  pointer-events: auto;
+}
+
+.train-sequence__actor {
+  position: absolute;
+  bottom: clamp(10px, 3vh, 28px);
+  display: flex;
+  align-items: flex-end;
+  gap: clamp(8px, 1.4vw, 18px);
+  max-width: min(780px, 94vw);
+  pointer-events: none;
+}
+
+.train-sequence__actor--teacher {
+  left: clamp(8px, 2vw, 24px);
+  transform-origin: left bottom;
+  animation: train-teacher-in 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.train-sequence__actor--teacher.is-leaving {
+  animation: train-teacher-out 0.6s cubic-bezier(0.45, 0, 0.55, 1) forwards;
+}
+
+.train-sequence__actor--robot {
+  right: clamp(8px, 2vw, 24px);
+  transform-origin: right bottom;
+  animation: train-robot-in 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.train-sequence__actor--robot.is-leaving {
+  animation: train-robot-out 0.6s cubic-bezier(0.45, 0, 0.55, 1) forwards;
+}
+
+.train-sequence__character {
+  height: clamp(150px, 30vh, 280px);
+  width: auto;
+  flex: 0 0 auto;
+  filter: drop-shadow(0 8px 14px rgba(39, 64, 82, 0.3));
+}
+
+.train-sequence__character--robot {
+  height: clamp(170px, 34vh, 320px);
+}
+
+.train-sequence__robot-wrap {
+  position: relative;
+  flex: 0 0 auto;
+}
+
+/* Eye beam: a viewport-sized SVG over the scene. TrainSequence measures the
+   robot's eyes and the sorted trays each frame and sets the cone polygon,
+   its gradient and the two eye glows, so the beam always starts at the eyes
+   and lands on the pictures. Never takes clicks. */
+.train-sequence__beam {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+  animation: train-beam-in 0.35s ease-out;
+}
+
+.train-sequence__beam-halo {
+  opacity: 0.55;
+}
+
+.train-sequence__beam-cone {
+  mix-blend-mode: screen;
+}
+
+@keyframes train-beam-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.train-sequence .train-sequence__bubble {
+  flex: 1;
+  min-width: 0;
+  max-width: min(430px, 56vw);
+  padding: clamp(12px, 2vh, 18px) clamp(14px, 2vw, 20px);
+  animation: train-bubble-in 0.4s ease 0.12s backwards;
+}
+
+.train-sequence__text {
+  margin: 0;
+  font-size: clamp(1rem, 1.6vw, 1.2rem);
+  line-height: 1.4;
+}
+
+.train-sequence__text + .train-sequence__text {
+  margin-top: 8px;
+}
+
+.train-sequence__bubble--robot {
+  transform-origin: right bottom;
+}
+
+.train-sequence__bubble--robot::before {
+  left: auto;
+  right: -9px;
+  border: 0;
+  border-top: 3px solid var(--pool-border);
+  border-right: 3px solid var(--pool-border);
+}
+
+.train-sequence__continue {
+  position: fixed;
+  left: 50%;
+  bottom: clamp(14px, 4vh, 42px);
+  z-index: 1;
+  pointer-events: auto;
+  transform: translateX(-50%);
+  animation: train-continue-in 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.train-sequence__continue-btn {
+  padding: 12px 42px;
+  font-size: 1.08rem;
+}
+
+@keyframes train-teacher-in {
+  from {
+    transform: translateX(calc(-100% - 120px)) translateY(10px);
+    opacity: 0;
+  }
+  55% {
+    opacity: 1;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes train-teacher-out {
+  from {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateX(calc(-100% - 120px)) translateY(12px);
+    opacity: 0;
+  }
+}
+
+@keyframes train-robot-in {
+  from {
+    transform: translateX(calc(100% + 120px)) translateY(10px);
+    opacity: 0;
+  }
+  55% {
+    opacity: 1;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes train-robot-out {
+  from {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateX(calc(100% + 120px)) translateY(12px);
+    opacity: 0;
+  }
+}
+
+@keyframes train-bubble-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes train-continue-in {
+  from {
+    transform: translate(-50%, 130%);
+    opacity: 0;
+  }
+  to {
+    transform: translate(-50%, 0);
+    opacity: 1;
+  }
+}
+
+@media (orientation: portrait) {
+  .train-sequence__actor {
+    flex-direction: column;
+    align-items: flex-start;
+    bottom: clamp(8px, 2vh, 18px);
+  }
+  .train-sequence__actor--teacher,
+  .train-sequence__actor--robot {
+    left: 10px;
+    right: 10px;
+    max-width: none;
+  }
+  .train-sequence__actor--robot {
+    align-items: flex-end;
+  }
+  .train-sequence__actor--robot .train-sequence__character--robot {
+    order: 2;
+  }
+  .train-sequence__character {
+    height: clamp(100px, 18vh, 170px);
+  }
+  .train-sequence__character--robot {
+    height: clamp(120px, 21vh, 190px);
+  }
+  .train-sequence .train-sequence__bubble {
+    width: 100%;
+    max-width: none;
+  }
+  .train-sequence__bubble--robot {
+    order: 1;
+  }
+  .train-sequence__bubble--robot::before {
+    left: calc(50% - 9px);
+    right: auto;
+    top: -9px;
+    border: 0;
+    border-top: 3px solid var(--pool-border);
+    border-left: 3px solid var(--pool-border);
+  }
+}
+
+@media (max-height: 560px) {
+  .train-sequence__character {
+    height: min(26vh, 150px);
+  }
+  .train-sequence__character--robot {
+    height: min(30vh, 180px);
+  }
+}
+
+/* ------------------------------------------------------- reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .menu-screen,
+  .teacher-screen,
+  .teacher-screen--exiting,
+  .app__bg {
+    transition: none;
+  }
+  .teacher-screen,
+  .teacher-screen--lesson {
+    animation: none;
+  }
+  .game-frame--intro,
+  .game-frame--exiting,
+  .app__scene.is-in,
+  .app__scene.is-out {
+    animation: none;
+  }
+  .menu-screen--exiting {
+    transform: translateY(110vh);
+  }
+  .teacher-bubble__caret {
+    animation: none;
+  }
+  .stage-guide__stage,
+  .stage-guide__character,
+  .stage-guide__bubble {
+    animation: none;
+  }
+  .stage-guide--exiting .stage-guide__stage,
+  .stage-guide--exiting .stage-guide__character {
+    transform: none;
+    transition: none;
+  }
+  .stage-guide--exiting .stage-guide__bubble {
+    opacity: 0;
+    transition: none;
+  }
+  .train-sequence__actor,
+  .train-sequence__bubble,
+  .train-sequence__beam,
+  .train-sequence__continue,
+  .predict-actor,
+  .predict-bubble {
+    animation: none;
+  }
+  .stage-live--scanning .tray .slot--filled {
+    transition: none;
+  }
+  .train-sequence__actor--teacher.is-leaving,
+  .train-sequence__actor--robot.is-leaving {
+    opacity: 0;
+  }
+  /* The beam holds still over every picture (no sweep) in TrainSequence. */
+  .train-sequence__beam {
+    opacity: 0.75;
+  }
+}
+

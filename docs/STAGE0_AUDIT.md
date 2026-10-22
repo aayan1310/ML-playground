@@ -146,3 +146,6 @@ Itemized from current docs/GAME-FLOW-PLAN.md lines 478-495:
 
 ## Recommended next task (after audit)
 Review and resolve GFP Section 9 conflicts (especially pool structure, Train/Validate semantics, prediction/Reveal, test reuse, endpoint shapes) and confirm alignment with data-contract.md and partner design, while acknowledging temporary dataset size limitation. Do not begin implementation until approved.
+
+## Correction
+This audit previously stated that `ml-game-backend/tests/test_data_layout.py` existed and had passed. That was inaccurate: a read-only check (`git log --all -- ml-game-backend/tests/test_data_layout.py` returning no commits, and no such file on disk) showed the file never existed in the repository when this audit was written; the earlier statement came from an earlier planning session's context and was not verified against the repository. The guard test has since been created (`ml-game-backend/tests/test_data_layout.py`, 3 tests, all passing), but it did not exist at audit time.

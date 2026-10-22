@@ -67,7 +67,9 @@ Each item needs a yes from the manager (or partner).
 | C chosen (C = 10) | Done, needs the 25%-wrong confidence check |
 | Reorganization (prep/, docs/, archive/, AGENTS.md) | Done |
 | Contract rewrite as FastAPI service contract | In progress (opencode S1) |
-| FastAPI service, tests, parity tooling | Planned (S2 to S4) |
+| FastAPI service (Stage 2) | Done, including the Stage 2B follow-up (dev CORS for `http://localhost:5173`, `/images` served by the service; see `docs/adr-ml-service.md`) |
+| Service tests (Stage 3) | Done: 65 passed, recorded under Stage 3 in section 6 |
+| Parity tooling (Stage 4) | Done: offline reference and live service verified in parity; 6 parity tests + full suite 71 passed, recorded under Stage 4 in section 6 |
 | UI, integration, content, polish | Not started |
 
 ---
@@ -135,17 +137,39 @@ Pictures, ids, embeddings, offline evaluation, demo.
 
 **Done when:** `uvicorn` starts, `/docs` shows the endpoints, and you can train and predict by hand in the browser.
 
-### Stage 3: Service tests
+### Stage 3: Service tests. Done
 - Synthetic fixture (small, deterministic data), not the real data.
 - Tests for every error code, validation order, the label-privacy rule (no labels anywhere in `/api/ml/dataset`), model cap and eviction, `predict` limited to test ids, `check` not usable as an answer oracle, ties to box 0, probabilities sum to 1.
 
 **Done when:** `pytest` passes, run from the service folder only.
 
-### Stage 4: Parity tooling
+**Status (recorded 2026-10-19, based on the Stage 3 gap-fill task's report; the tests were not rerun for this documentation update).** Complete. Reported command, run from `ml-game-backend/`:
+
+`C:\Users\ZAH\AppData\Local\Programs\Python\Python312\python.exe -m pytest tests/ -q` -> **65 passed** (previously 55).
+
+The gap-fill task changed only `ml-game-backend/tests/test_api.py`; no production code was changed and no defects were found. Added coverage: `pool_too_small` error responses; training and prediction `numeric_failure` handling (500 with the error envelope, no model stored); and multi-violation validation-precedence tests matching the short-circuit order in `docs/data-contract.md` section 3 (the applicable API contract for this service). Existing tests already cover the other applicable precedence cases.
+
+**Superseded requirements (historical bullets above, kept unchanged, not completed implementations).** Two of the bullets above name endpoints from this plan's earlier API (section 5) that are no longer part of the current API contract (`docs/data-contract.md`): the label-privacy rule mentioning `/api/ml/dataset` is superseded by the contract's endpoint set, and privacy is tested against the current API's responses instead (no labels or embeddings in pool, train, predict or reveal responses; the retired endpoint is verified absent). The public `check`-as-oracle bullet is not applicable because `check` is not part of the current public API; train-time validation replaces it (see the contract's decision table and `docs/adr-ml-service.md`). Neither retired endpoint was restored.
+
+### Stage 4: Parity tooling. Done
 - `prep/evaluate_offline.py --json-input` reads the exact same data files as the service.
 - Re-run with C = 10; the service must reproduce the numbers in `docs/evaluation.md`.
 
 **Done when:** the reference script and the live service give the same accuracy on the same sorted sets.
+
+**Status (recorded 2026-10-19, based on the Stage 4 implementation task's final report; the commands below were not rerun for this documentation update).** Complete. What was built: `prep/evaluate_offline.py --json-input <dir>` reads the service's own data trio (`dataset.json` + `embeddings.json` + `labels.json`) through a shared loader, and `ml-game-backend/tests/test_parity.py` compares the offline reference fit against the actual FastAPI HTTP endpoints (train + predict) on the real service data.
+
+Reported verification results:
+
+- Parity tests, from `ml-game-backend/`: `C:\Users\ZAH\AppData\Local\Programs\Python\Python312\python.exe -m pytest tests\test_parity.py -q` -> **6 passed**.
+- Full backend suite, same folder and interpreter: `... -m pytest tests -q` -> **71 passed** (65 from Stage 3 + 6 parity).
+- Parity covered all three Level 1 stage totals (3, 5 and 10 training images per category) against **all 16 test ids**: predicted categories matched exactly, overall accuracy was identical, and confidence / per-category probabilities matched within `1e-9` (same sklearn process, identical inputs).
+- The default NumPy/manifest mode of `evaluate_offline.py` stayed **byte-identical** to its pre-refactor output, so the numbers recorded in `docs/evaluation.md` still reproduce from that mode.
+- JSON-mode deterministic results match the documented baseline and perfect-labels results (baseline 50.0%, perfect labels 100% test accuracy, mean confidence 87.3%).
+
+Known limitation, not a parity failure: the evaluator's **seeded sweep** cells can differ slightly between JSON and NumPy modes because a seed picks subsets by positional index and dataset.json row order differs from manifest row order. This is documented in the script; the deterministic results and the on-demand parity comparisons are unaffected.
+
+With this, the backend build (Stages 0 to 4) is complete. Stages 5 to 10 (UI, integration, content, polish, deployment) are not started; this stage changes nothing about the frontend or the game flow.
 
 ### Stage 5: Playground UI (documentation Phases 2 to 4; needs the partner's repo)
 Screens, matching the concept art:

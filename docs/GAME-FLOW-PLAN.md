@@ -1,6 +1,6 @@
-# ML Playground: Game Flow Plan (revision 4)
+# ML Playground: Game Flow Plan (revision 5)
 
-Companion to `ML_Playground_Master_Plan.md` (revision 2). This document describes how the playground plays, screen by screen, and what that implies for data and the API.
+Companion to `docs/PLAN.md` (revision 2). This document describes how the playground plays, screen by screen, and what that implies for data and the API.
 
 **Nothing in this document is implemented.** Technical and API items are **proposals** that must be checked against the Master Plan and the API contract before any implementation. They do not override either document.
 
@@ -11,7 +11,17 @@ Companion to `ML_Playground_Master_Plan.md` (revision 2). This document describe
 
 **Naming.** The documentation already uses "Level 1 to 8" for the whole game. In this document, **Level 1, 2 and 3 mean the playground's three levels**, each with three **Stages**. If the two ever need to be told apart, say "Playground Level".
 
-## Revision notes: revision 4 (visual direction, this update)
+## Revision notes: revision 5 (training-image pool rules, this update)
+
+1. **Pool design replaced by a remaining-pool system (confirmed).** Each category has its own available training pool. At each stage 10 candidates per category are drawn at random from that category's remaining pool. Selected images leave the pool; displayed but unselected candidates stay available and may be offered again. Carryover examples stay locked in the sorting areas and are not part of the new candidates. New section 3.6.
+2. **Removed:** the requirement for three disjoint pools and 30 distinct training images per category, and the "Level 1 is 8 per category short" finding. The derived minimum is now **15 training images per category** (section 8.5). Level 1's reported 22 per category would meet it if the counts are confirmed; they are reported, not verified.
+3. **The displayed pool stays fixed while the player completes the stage (confirmed).** What happens on a browser reload or a repeated stage remains Undecided, with recommended defaults (3.6).
+4. **Test images are unchanged:** separate from training, chosen by the player, used once per level, at least nine distinct per level.
+5. **API and data proposals updated:** the service, not the browser, draws the candidates (only the service knows the labels). Conflict rows 12 and 14, acceptance checks 16, 17, 20, 21 and new checks 27 to 30, and the open-decision lists were updated.
+6. **Arithmetic checked:** per category 22 to 19 to 17 to 12 available, and 3 to 5 to 10 selected in total.
+7. No other confirmed gameplay or UI decision was changed. The Master Plan and the data contract were not edited.
+
+## Revision notes: revision 4 (visual direction)
 
 1. **New section 7A, Visual and UI direction,** based on your description and the concept image: a bright, kid-friendly look in the style of the concept, a simple interface with clear elements and instructions, and a cartoon anime-style teacher or robot as a guide. The centre of the concept image (the sorting lesson and "Train Your Model") is the focus.
 2. The teacher is described as a **scripted guide** (fixed text from the translation file), not the AI teacher of the project documentation (section 7A.4). That is a proposal.
@@ -20,14 +30,14 @@ Companion to `ML_Playground_Master_Plan.md` (revision 2). This document describe
 
 ## Revision notes: revision 3.1 (pool size correction)
 
-1. **Pool size corrected:** the selection pool holds **10 images per category at every stage** (20 in Level 1, 30 in Level 2), not 10 images in total.
+1. **Pool size corrected:** the selection pool holds **10 images per category at every stage** (20 in Level 1, 30 in Level 2), not 10 images in total. *(The disjoint-pool part is superseded in revision 5.)*
 2. The Stage 3 feasibility conflict raised in revision 3 came from the wrong pool size and is **withdrawn**. No stage requires more images per category than its pool holds.
-3. Added the calculation of distinct training images required if pools cannot overlap: **30 per category** (60 for Level 1, 90 for Level 2). The reported Level 1 data (22 training pictures per category) would be 8 per category short. This must be verified.
+3. Added the calculation of distinct training images required if pools cannot overlap: **30 per category** (60 for Level 1, 90 for Level 2). The reported Level 1 data (22 training pictures per category) would be 8 per category short. This must be verified. *(Superseded in revision 5: pools may reuse unselected images, so this requirement no longer applies.)*
 4. Updated the affected tables, state rules, proposals, data requirements, acceptance checks and the list of open items. No other confirmed decision was changed.
 
 ## Revision notes: revision 3
 
-1. **Training pool (confirmed):** each stage shows a different pool, with no overlap between the stages of a level. The player may use any subset; unselected images are never used for training. New section 3.6. (Pool size corrected in revision 3.1.)
+1. **Training pool (confirmed):** each stage shows a different pool, with no overlap between the stages of a level. The player may use any subset; unselected images are never used for training. New section 3.6. (Pool size corrected in revision 3.1. The no-overlap rule is superseded in revision 5.)
 2. **Feasibility conflict flagged:** this was based on a misreading of the pool size and is withdrawn in revision 3.1.
 3. **Prediction pictures (confirmed):** the player chooses each of the three test pictures from the level's unused test pictures. Used pictures are marked and cannot be chosen again within the level, so a level needs at least nine eligible test pictures. This replaces the earlier Option A/B proposal.
 4. **Movement and Reset (confirmed, restated):** unaccepted pictures can be dragged back to the pool or between categories; Reset clears the stage's unaccepted selections; locked examples never move.
@@ -83,11 +93,11 @@ The design keeps your original layout: image pool on the **right**, category sor
 | 17 | Whether the player must press Reveal before continuing | **Undecided** (proposed: optional) |
 | 18 | Whether progress is saved if the player leaves or refreshes | **Undecided** |
 | 19 | The API and data changes in section 8 | **Proposed** |
-| 20 | Training pool: 10 new images **per category** at every stage, different images per stage, no overlap within a level | **Confirmed** |
-| 21 | The player may use any subset of the pool; unselected images are never used for training | **Confirmed** |
+| 20 | Training pool per stage: 10 candidate images **per category**, drawn at random from that category's remaining available pool; displayed but unselected candidates stay available and may reappear in later stages | **Confirmed** |
+| 21 | The player may use any subset of the candidates; only selected, correctly sorted images enter the training set, and an image selected for training leaves the available pool | **Confirmed** |
 | 22 | Unaccepted pictures can be dragged back to the pool and between categories; Reset clears the stage's unaccepted selections | **Confirmed** |
-| 23 | Three disjoint pools need 30 distinct training images per category; the reported Level 1 data has 22 per category | **Data requirement, to verify** (sections 3.6 and 8.5) |
-| 24 | Stage pools defined in server configuration and checked at start-up | **Proposed** (section 8.1) |
+| 23 | The display rule needs at least 15 training images per category (derived); the reported Level 1 data has 22 per category | **Reported, to verify** (sections 3.6 and 8.5) |
+| 24 | The service draws each stage's candidates (only it knows the labels); pool rules configurable by level | **Proposed** (section 8.1). Configurability by level is **Confirmed**. |
 | 25 | Visual direction: bright, colorful and attractive to children, in the style of the concept image | **Confirmed** |
 | 26 | Simple interface with clear elements and instructions that guide the child | **Confirmed** |
 | 27 | A cartoon anime-style teacher or robot character guides the child | **Confirmed** |
@@ -96,6 +106,8 @@ The design keeps your original layout: image pool on the **right**, category sor
 | 30 | Whether to show a code panel and an accuracy figure as in the concept's "Train Your Model" screen | **Undecided** (7A.2) |
 | 31 | Theme values defined as named tokens so the look can be swapped | **Proposed** (7A.5) |
 | 32 | Who produces the art assets, and the rights to reuse the concept image's characters | **Undecided** (7A.8) |
+| 33 | The displayed candidate pool stays fixed while the player completes the stage (no reshuffle on re-render) | **Confirmed** |
+| 34 | Whether the candidate pool and the available pools survive a browser reload, and whether a repeated stage keeps the same candidates | **Undecided** (3.6, with recommended defaults; ties to items 16 and 18) |
 
 ---
 
@@ -143,41 +155,49 @@ Same structure: 3, then 5, then 10 total per category, carryover locked, the pla
 
 Each stage trains a **new** model on **all** correctly labelled examples accumulated so far. The earlier stage's model is not updated or reused. Stage 2's model learns from 10 images (Level 1), not from the four new ones.
 
-### 3.6 Stage pools: 10 new images per category at every stage (confirmed)
+### 3.6 Training pools: the remaining-pool system (confirmed)
 
-**Confirmed rule.** At every stage the selection pool contains **10 images per category**. Each stage's pool contains images that are different from those offered in earlier stages of the same level, so the three pools of a level do not overlap. The player selects from the pool, and only selected, correctly labelled examples enter the accumulated training set. Prediction images stay separate from all training pools. The pool size refers to the images currently offered, not to the size of the dataset.
+**The rule.** Each category has its own **available training pool**, which starts as all of that category's training images. At each stage the game draws **10 candidate images per category at random** from that category's available pool and shows them (20 candidates in Level 1; 30 in Level 2 with three categories). The player selects the stage's required new examples from the candidates. Selected images leave the available pool. Candidates that were displayed but not selected stay available and may be offered again in a later stage.
 
-| Level | Categories | Images offered per stage | Example |
-|---|---:|---:|---|
-| 1 | 2 | 20 | 10 cats + 10 dogs |
-| 2 | 3 | 30 | 10 apples + 10 bananas + 10 oranges (working examples, to be verified) |
-| 3 | k (undecided) | 10 x k | |
+**Three ideas, kept apart**
 
-**Selection per stage, per category (rules unchanged)**
+| Idea | Meaning |
+|---|---|
+| Candidate display | An image that was displayed but not selected may be displayed in more than one stage. |
+| Training selection | An image can be selected for the accumulated training set only once. |
+| Carryover | Images selected in earlier stages stay in the sorting areas as locked examples. They are not part of the new candidates and do not count as new selections. |
 
-| Stage | Pool per category | Carried (locked, not in the pool) | New to select | Total after the stage | Offered but unselected |
+**Rules (confirmed)**
+1. Each category has its own available training pool.
+2. 10 candidates per category are chosen at random at each stage. No particular random method is required.
+3. An image may appear in several stages' candidates if it has not been selected for training.
+4. Once selected for training, an image leaves the available pool and is never offered again as a new candidate.
+5. Carryover examples stay locked in their sorting slots and are not counted as new selections.
+6. The cumulative training examples per category stay **3, 5 and 10**.
+7. Each stage trains a fresh model on the whole accumulated set of correctly labelled examples for that stage.
+8. Test images are never mixed into the training pool. They stay separate and follow the prediction and Reveal rules.
+9. The pool rules (candidates per category, new selections per stage, number of categories) are configurable by level and not tied to two categories.
+10. The displayed pool for a stage stays fixed while the player completes the stage. It is not redrawn during sorting, dragging, Reset or an ordinary re-render of the screen.
+
+**Level 1 arithmetic, per category** (22 cat images and 22 dog images are reported; if the reported counts are confirmed)
+
+| Stage | Available at the start | Candidates displayed | New selected | Available after | Total selected (locked after Train) |
 |---|---:|---:|---:|---:|---:|
-| 1 | 10 | 0 | 3 | 3 | 7 |
-| 2 | 10 (different images) | 3 | 2 | 5 | 8 |
-| 3 | 10 (different images) | 5 | 5 | 10 | 5 |
+| 1 | 22 | 10 | 3 | 19 | 3 |
+| 2 | 19 | 10 (drawn from the 19; may include Stage 1 candidates that were not selected) | 2 | 17 | 5 |
+| 3 | 17 | 10 (drawn from the 17; may include earlier candidates that were not selected) | 5 | 12 | 10 |
 
-Each pool offers more images per category than the stage requires, so no stage asks for more than its pool holds, and the player always has a choice. The player does not have to use every image. Unselected images are not used for training and do not come back in later stages.
+This holds for cats and dogs separately: 22, 19, 17, 12 available, and 3, 5, 10 selected in total. After Stage 3, 12 images per category remain unused. Each stage displays 20 candidates in all (10 cats and 10 dogs).
 
-**Distinct training images required if pools cannot overlap across stages**
+**When the available pool shrinks.** An image is counted as selected for training when the stage's training succeeds, because until then the player can still move, remove or Reset the picks, and validation can fail. Before then, the stage's placed pictures simply sit in slots and the stage's candidate pool is unchanged. This follows from the Reset and validation rules and is not a new rule.
 
-Per category: 10 (Stage 1 pool) + 10 (Stage 2 pool) + 10 (Stage 3 pool) = **30 distinct training images per category**. Only 10 per category are finally selected (3 + 2 + 5); the other 20 are offered and unused.
+**Fixed during the stage (confirmed), and what is still undecided.** The stage's candidates are drawn once, when the stage starts, and kept as part of the stage's state. Re-renders, resizing, dragging, Reset and similar interface changes never redraw them, and Reset returns pictures to this same set. Two things are **Undecided**, because they depend on the open decisions about saving progress and repeating a stage (items 16 and 18):
+- *A full browser reload, or leaving and coming back.* Recommended default: if progress is not saved, a reload restarts the level from Stage 1 with new draws; if progress is saved, the stage's candidates and the available pools are saved with it, so the player sees the same pictures.
+- *A repeated stage.* Recommended default: the stage's selections return to the available pool and the player chooses again from the same candidates.
 
-| Level | Distinct training images per category | Categories | Distinct training images required in total |
-|---|---:|---:|---|
-| 1 | 30 | 2 | 60 (30 cats + 30 dogs) |
-| 2 | 30 | 3 | 90 (30 apples + 30 bananas + 30 oranges) |
-| 3 | 30 | k (undecided) | 30 x k |
+**Data consequence (if the reported counts are confirmed).** The display rule needs at least 15 training images per category (section 8.5). Level 1 reports 22, so it does not need additional training images merely to show 10 candidates per category at every stage. This does not settle image licensing, image quality, embedding integrity, label correctness or the other data checks, which still have to be verified.
 
-Test images are separate and additional (at least nine distinct test pictures per level, see 5.5).
-
-**Dataset availability must be verified.** Earlier reports describe the Level 1 data as 22 training pictures per category plus 8 test pictures per category (60 images in all). If that is accurate, Level 1 is **8 training images per category short** (22 against 30, so 16 images in total), and no pool may be filled by reusing images or borrowing them from another pool. Levels 2 and 3 have no data yet. How any shortfall is closed is not decided in this document.
-
-**Pool requirements.** Each pool must contain exactly 10 images of every category, which is at least what the stage requires. If the dataset cannot supply that, it is a data requirement to fix; images are never reused or borrowed from another stage's pool.
+**Test images are unchanged.** They stay separate from the training pool, are chosen by the player, and a test image cannot be reused within the same level (5.5). The reuse of unselected training candidates does not apply to test images. A level needs at least nine distinct test images; 16 are reported.
 
 ---
 
@@ -221,9 +241,9 @@ One or two lines about what the player will teach the computer. Start button. Ex
 - A counter per category, for example "3 of 5".
 
 **Pool (confirmed: 10 new images per category at every stage)**
-- Shows **10 new training images per category** for the current stage (20 in Level 1, 30 in Level 2), in a fixed mixed order. They are different from every image offered in earlier stages of the same level.
+- Shows **10 candidate training images per category** for the current stage (20 in Level 1, 30 in Level 2), drawn at random from each category's remaining available pool (3.6) and shown mixed together. The candidates may include images that were displayed in an earlier stage but not selected. The displayed pool stays fixed while the player completes the stage.
 - The number refers to the images currently offered, not to the size of the dataset.
-- The player does not have to use every image. Only the correctly sorted selections that fill the required slots become training examples. Unselected images are never used for training and do not return in later stages.
+- The player does not have to use every image. Only the correctly sorted selections that fill the required slots become training examples. Unselected images are not used for training at this stage; they stay in the category's available pool and may be offered again in a later stage.
 - Pictures already accepted in an earlier stage never appear in the pool.
 - Images placed in a slot leave the pool. Images dragged back return to this stage's pool.
 
@@ -305,10 +325,10 @@ A short end-of-level message with the three teaching points in section 1, then t
 ## 6. State and rules
 
 **Per level**
-- Level number, categories, the three stage pools (10 training pictures per category each, no overlap), the test pool, and the set of test pictures already used (shared across the level's three stages).
+- Level number, categories, the available training pool for each category (it shrinks as examples are accepted), the test pool, and the set of test pictures already used (shared across the level's three stages).
 
 **Per stage**
-- Stage number, total per category required, the stage's pool of images, accepted examples (carried), new examples (selected from the pool, not yet accepted), whether training succeeded, the stage's model, the three predictions (picture, predicted category, confidence, revealed or not).
+- Stage number, total per category required, the stage's candidate pool (10 per category, drawn when the stage starts and then fixed), accepted examples (carried), new examples (selected from the pool, not yet accepted), whether training succeeded, the stage's model, the three predictions (picture, predicted category, confidence, revealed or not).
 
 **Rules**
 1. Train is enabled only when every slot of the stage is filled.
@@ -321,11 +341,11 @@ A short end-of-level message with the three teaching points in section 1, then t
 8. Test pictures are never in the training set. A revealed test picture never becomes training data.
 9. A stage is complete when its three predictions have been made (and revealed, if that becomes a requirement).
 10. A level is complete when its three stages are complete. Levels run in order.
-11. Each stage offers its own pool of 10 new training pictures per category. The pools of one level never overlap.
-12. Only selected, correctly sorted pictures fill the slots. Unselected pool pictures are never used for training.
+11. Each stage offers 10 candidate training pictures per category, drawn at random from that category's available pool when the stage starts. The candidate pool is fixed while the stage is in progress. Candidates that were displayed but not selected may appear again in later stages.
+12. Only selected, correctly sorted pictures fill the slots and enter the training set. Unselected candidates are not used for training and stay available. A picture accepted for training leaves the available pool and is never offered as a new candidate again.
 13. A test picture can be selected for prediction once per level.
 
-**Edge cases the screens must handle:** pressing Train twice (button disabled while a request is in flight); leaving or refreshing mid-stage (behavior Undecided, item 18); the service being down at Train, Predict or Reveal (sorting kept, retry offered); the stage's model expiring before predictions finish (offer to train again with the same accepted set, no re-sorting); dropping into a full category; a dragged picture dropped outside any slot; touch-only and keyboard-only play; a missing image; fixing a wrong picture when the correct category is already full (the player must free a slot first, with a clear message); a pool that lacks enough pictures for a category (should be impossible; the stage is blocked with an error, and pictures are never reused or borrowed from another pool); no unused test pictures left in the prediction pool (should be impossible with at least nine eligible test pictures per level).
+**Edge cases the screens must handle:** pressing Train twice (button disabled while a request is in flight); leaving or refreshing mid-stage (behavior Undecided, item 18); the service being down at Train, Predict or Reveal (sorting kept, retry offered); the stage's model expiring before predictions finish (offer to train again with the same accepted set, no re-sorting); dropping into a full category; a dragged picture dropped outside any slot; touch-only and keyboard-only play; a missing image; fixing a wrong picture when the correct category is already full (the player must free a slot first, with a clear message); an available pool with fewer than 10 pictures for a category at the start of a stage (should be impossible if the data meets the minimum in 8.5; the stage is blocked with an error, and nothing is borrowed from the test set or another category); no unused test pictures left in the prediction pool (should be impossible with at least nine eligible test pictures per level).
 
 ---
 
@@ -431,18 +451,18 @@ The partner's analysis notes describe a different style (dark background, lime a
 | Reset | UI-only. Nothing is stored on the server before a successful Train | No endpoint needed. |
 | Three predictions per stage on unseen pictures | Each trained model accepts predictions only for test-pool pictures, at most three distinct ones; a fourth or a repeated picture is rejected | Needs error codes (for example a prediction limit). |
 | Reveal without leaking | `reveal` accepts a model and a picture and returns the true category only for a picture already predicted by that model. It returns that picture only | Not available before predicting. |
-| Hiding hidden data | The dataset response lists picture ids and image URLs per level, with no labels, no embeddings. Labels and embeddings stay server-side files outside the public folder | Also needs a build check that they are not in the public output. |
-| A distinct pool of 10 per category per stage | Server configuration lists, for each level, three disjoint pools of training picture ids (the category of each stays server-side). The dataset response gives the browser the ids and URLs of the pools, never labels. | Fixed, curated pools are easy to test and to verify. A random draw per play would add variety but needs per-category guarantees at run time and makes tests harder (Undecided). |
-| Enough pictures from every category in each pool | Guaranteed when the data is prepared, checked again at service start-up: every pool has exactly 10 pictures per category (so at least the stage's required count), pools are disjoint, every id is in the training pool and none is in the test pool. | The service refuses to start on failure, as the Master Plan already specifies for data problems. |
-| Unselected pool pictures stay out of training | The Train request contains only the accumulated selected examples. The service rejects any id that is not in a pool of the current or an earlier stage of that level, and checks the exact count per category. | Needs a new error code for ids outside the allowed pools. |
+| Hiding hidden data | Responses list picture ids and image URLs only, never labels or embeddings. Labels and embeddings stay server-side files outside the public folder | Also needs a build check that they are not in the public output. |
+| Stage candidates: 10 per category, drawn at random from each category's remaining pool | The **service** draws them, because only the service knows which pictures belong to which category and the browser must not. The browser asks for a stage's pool with the level, the stage and the ids accepted so far (the carried examples). The service takes each category's available pool as its training ids minus the accepted ids, draws 10 per category at random, and returns the ids and URLs mixed together, with no labels. The browser keeps the returned pool for the whole stage, so it stays fixed. | The service keeps no stage session and does not remember what it issued. Candidates per category, new selections per stage and number of categories come from level configuration (confirmed requirement), not from the code. |
+| Enough available pictures per category at each stage | Every category needs at least 10 available pictures at the start of every stage. With totals of 3, 5 and 10 that means at least 15 training pictures per category (8.5). Checked in the data audit and at service start-up; a draw from a pool that is too small returns an error. | The service refuses to start on failure, as the Master Plan already specifies for data problems. Nothing is borrowed from the test set or another category. |
+| Only selected examples enter training; accepted images leave the available pool | The Train request contains only the accumulated selected examples (carried plus new). The service checks that every id is a training picture, none is duplicated, the count per category is exact for the level and stage, and every label is correct. The next stage's pool request lists the accepted ids so those pictures are left out of the new candidates. | The service does not check that new selections came from the candidates it issued, and the game rules do not need it. Enforcing it would need signed pools or a server session (Undecided, not proposed). |
 | Used test pictures tracked across a level | The browser tracks used test ids for the level. The service checks per model: test-pool only, at most three distinct, no repeats. | Cross-stage one-use is a UI rule (see 5.5). |
-| A pool without enough eligible pictures | Start-up validation fails. If the browser ever receives such a pool, the stage is blocked with an error. Pictures are never reused or filled in from another pool. | See 3.6 and 8.5. |
+| An available pool that is too small | Start-up validation fails. If a draw is ever attempted from a pool with fewer than 10 pictures for a category, the stage is blocked with an error. Nothing is borrowed. | See 3.6 and 8.5. |
 | Three categories | See 8.3 | |
 
 ### 8.2 Proposed request and response sketches (names are placeholders, not decisions)
 
-- **Dataset:** per level, the category names, the three stage pools of training pictures (id and URL only), and the test pictures (id and URL only).
-- **Train:** level, stage, list of `{id, category}`. Success returns a model id and the count per category. Failure returns the wrong ids (`wrong_labels`) or the validation errors that already exist (unknown id, not in train pool, not in an allowed stage pool, duplicate id, wrong counts).
+- **Level data and stage pool:** per level, the category names and the test pictures (id and URL only); and a stage-pool request that takes the level, the stage and the ids accepted so far and returns that stage's candidates (id and URL only, mixed, no labels).
+- **Train:** level, stage, list of `{id, category}`. Success returns a model id and the count per category. Failure returns the wrong ids (`wrong_labels`) or the validation errors that already exist (unknown id, not in train pool, duplicate id, wrong counts).
 - **Predict:** model id and a test picture id. Returns the predicted category, confidence, and the probability of every category.
 - **Reveal:** model id and the picture id. Returns the true category and whether the model's prediction matched.
 
@@ -462,13 +482,17 @@ The ML service and contract must support more than two categories. Things to pla
 
 | Level | Need | Status |
 |---|---|---|
-| 1 | Three disjoint training pools of 10 pictures **per category** (20 per stage): **30 distinct training pictures per category, 60 in all**. Plus at least 9 unseen, separate test pictures. | Earlier summaries report 22 training pictures per category (44 in all) and 8 test pictures per category (16). **Unverified.** If correct, the training side is **8 per category (16 in all) short**. |
-| 2 | Three categories, three disjoint pools of 10 per category (30 per stage): **30 distinct training pictures per category, 90 in all**. Plus at least 9 unseen test pictures (at least 3 per category recommended). | **Does not exist.** Needs sourcing, licensing and attribution, opaque ids, embeddings from the same model as Level 1, labels, pool assignment, integrity tests and offline evaluation. The category names are working examples to verify. |
-| 3 | The same pattern for k categories: 30 per category, 30 x k in all, plus test pictures. | **Blocked** until the categories are chosen. |
+| 1 | At least **15 training pictures per category** (the minimum for the display rule, derived below), plus at least 9 unseen, separate test pictures. | The Stage 0 audit reports 22 training pictures per category (44 in all) and 8 test pictures per category (16). These are **reported figures, not verified in this document**. If confirmed, the display rule needs no additional training pictures (22 against a minimum of 15). |
+| 2 | Three categories, at least 15 training pictures per category (45 in all) by the same arithmetic, plus at least 9 unseen test pictures (at least 3 per category recommended). | **Does not exist.** Needs sourcing, licensing and attribution, opaque ids, embeddings from the same model as Level 1, labels, integrity tests and offline evaluation. The category names are working examples to verify. |
+| 3 | The same pattern for k categories: at least 15 training pictures per category, plus test pictures. | **Blocked** until the categories are chosen. |
 
-**How the pools are guaranteed to have enough pictures per category (Proposed).** Pools are built when the data is prepared, not sampled at run time. The preparation step assigns pictures to stage pools with exactly 10 per category in each pool, and the same rules are checked again at service start-up (8.1). If the rules cannot be met, data preparation fails and reports which level, stage and category is short. It never reuses a picture.
+**Where the minimum of 15 comes from (derived from the confirmed rules).** Every stage must show 10 candidates per category drawn from that category's available pool, and pictures accepted in earlier stages are removed. If a category has N training pictures, the available count at the start of each stage is: Stage 1, N (needs N >= 10); Stage 2, N - 3 (needs N - 3 >= 10, so N >= 13); Stage 3, N - 5 (needs N - 5 >= 10, so N >= 15). So 15 per category is the least that lets every stage show 10 candidates. More pictures give more variety, and Level 1 reports 22. This minimum **replaces** the earlier requirement of 30 distinct training pictures per category.
 
-**How actual dataset sizes and category distributions are verified (Proposed).** A read-only data audit that prints, for each level, the number of pictures per category available for training and in each stage pool and in the test pool; checks that pools do not overlap each other or the test pool; checks that every id has an image file, an embedding and a label; and checks that each category has at least 30 distinct training pictures. Run it on Level 1 before the game is built, and on each new level's data when it is prepared. It is not code written in this task.
+**What this does not settle.** Image licensing and attribution, image quality, embedding integrity, label correctness, and the other integrity checks below are still to be verified.
+
+**How enough pictures per category is guaranteed (Proposed).** The data audit and the service start-up check each category's training count against the minimum for the level's configuration, and the service refuses to start if it is not met. At run time a draw from a pool that is too small fails with an error; it never borrows from the test set or another category.
+
+**How actual dataset sizes and category distributions are verified (Proposed).** A read-only data audit that prints, for each level, the number of training pictures per category and the number of test pictures per category; checks that the training and test sets do not overlap; checks that every id has an image file, an embedding and a label; and checks that each category has at least 15 distinct training pictures (the display-rule minimum). Run it on Level 1 before the game is built, and on each new level's data when it is prepared. It is not code written in this task.
 
 ### 8.6 Does the current contract and backend support this?
 Based on the Master Plan and earlier reports (not on the code, which was not seen): **no.** The backend that exists is an archived earlier version; the Master Plan's contract is two-category, accepts any count of at least three per box, allows training on wrong labels, and has `check`, `evaluate` and `reveal` behavior that differs from this flow. Section 9 lists the conflicts.
@@ -490,8 +514,9 @@ Based on the Master Plan and earlier reports (not on the code, which was not see
 | 9 | Mission-style screens in B2 to B4 and Level naming | No level selection screen; stage-based sort, train, predict flow | Update the Master Plan's Deliverable B stage descriptions |
 | 10 | Rewards and progress in Deliverable C | Rewards are optional future ideas | Move rewards out of the required scope |
 | 11 | Master Plan names "Mission" in places | This document uses Level and Stage | Align terminology |
-| 12 | One training pool per dataset | Three disjoint pools per level, one per stage, each with 10 pictures per category | Contract change to the dataset shape and a new error for ids outside the allowed pools; data preparation to assign pools |
+| 12 | One fixed training pool per dataset | A per-category available pool; 10 random candidates per category at each stage drawn from the remaining pool; accepted images removed; unselected candidates may reappear | Contract change: a stage-pool request (level, stage, accepted ids) that returns candidates without labels. The service draws them because only it knows the labels. Needs approval |
 | 13 | Test-pool prediction limits per model only | Player-chosen unused test pictures, one use per level, at least 9 eligible test pictures per level | UI tracking of used pictures (a server level session only if tamper-proofing is wanted); data requirement for Levels 2 and 3 |
+| 14 | The dataset response lists all training and test pictures once, with fixed shuffled lists | The browser receives only the current stage's candidates, drawn per stage, plus the test pictures | Dataset response shape changes. The Master Plan's fixed shuffled lists no longer apply to training candidates, and the full training list must not be sent to the browser (it would let the player pick outside the candidates) |
 
 The Master Plan has not been edited. These items are for review.
 
@@ -537,51 +562,56 @@ A person, with automated tests where noted, must be able to:
 13. See the service-down, model-expired and missing-image cases handled without a crash. (Test)
 14. Use touch and keyboard to sort, train and predict. (Manual)
 15. English and Roman Urdu/Urdu text on every screen. (Manual)
-16. See 10 new training pictures per category at each stage (20 in Level 1, 30 in Level 2), different from the pictures offered in earlier stages of the same level. (Test with the real data)
-17. Finish a stage without using every picture in the pool, and confirm the unselected pictures never appear in the training request and never return in a later stage. (Test)
+16. See 10 candidate training pictures per category at each stage (20 in Level 1, 30 in Level 2), drawn from that category's remaining available pool. The candidates may include pictures shown earlier but not selected, and never include a picture already accepted for training. (Test with the real data; check these properties rather than exact random picks)
+17. Finish a stage without using every candidate, and confirm the unselected candidates never appear in the training request and stay available (they may be offered again in a later stage). (Test)
 18. Drag an unaccepted picture back to the pool and between categories; Reset clears only the unaccepted selections; locked pictures cannot be moved. (Test)
 19. In the prediction pool, select only unused test pictures; a used picture is marked and cannot be selected; nine distinct test pictures are used across the three stages. (Test)
-20. Confirm that the stage pools and the test pool are disjoint, that each pool has exactly 10 pictures per category, and that each level has 30 distinct training pictures per category (data audit and service start-up test).
-21. Confirm that a pool lacking enough pictures blocks the stage with an error and no picture is reused or borrowed. (Test)
+20. Confirm that the training and test sets are disjoint and that each category has at least 15 distinct training pictures, the display-rule minimum (data audit and service start-up test).
+21. Confirm that an available pool with fewer than 10 pictures for a category blocks the stage with an error and nothing is borrowed from the test set or another category. (Test)
 22. Each playground screen shows a clear instruction line, and the guide's messages appear at the key moments (intro, wrong sorting, training done, prediction, reveal, wrap-ups), all taken from the translation file. (Test that the strings come from the file; manual review)
 23. A disabled button always shows why it is disabled. (Test)
 24. Touch targets are large enough, and color is never the only cue (wrong pictures and categories also have an icon and text). (Manual accessibility check)
 25. Theme values are named tokens, not hard-coded in components. (Code review)
 26. No guide message claims what the model looked at. (Copy review)
+27. The Level 1 available-pool arithmetic holds per category: 22, 19, 17, 12 available after the start and after Stages 1, 2 and 3 when the required selections are made, and the cumulative selected counts are 3, 5, 10. (Test with the real data, once the reported counts are confirmed)
+28. The stage's displayed candidates do not change on re-render, resize, drag, drop or Reset during the stage. (Test)
+29. A picture accepted for training is never offered as a new candidate in a later stage. (Test)
+30. The test-image rules are unchanged: no test picture is ever a training candidate, and no test picture is chosen twice within a level. (Test)
 
 ---
 
 ## 13. Remaining decisions, data requirements and technical questions
 
 **Decisions**
-1. How to close the Level 1 training-data shortfall (reported 22 per category against 30 needed), once the real counts are verified.
+1. *(Closed.)* The earlier Level 1 training-data shortfall no longer applies under the remaining-pool rules, provided the reported 22 training pictures per category are confirmed (data requirement 1).
 2. Level 3 categories.
 3. Final Level 2 categories, once the dataset is checked.
 4. Whether Reveal is required before continuing.
-5. Whether a player can repeat a stage after training.
-6. Whether progress is saved on leaving or refreshing, and where.
+5. Whether a player can repeat a stage after training, and whether a repeated stage keeps the same candidates (recommended default in 3.6: yes, with the stage's selections returned to the available pool).
+6. Whether progress is saved on leaving or refreshing, and where. This decides whether the stage's candidates and the available pools survive a reload (recommended defaults in 3.6).
 7. Whether `check` is removed or kept as an optional pre-check.
 8. Whether the minimal stage and level wrap-up screens are wanted.
 9. Whether the integrated game keeps this bright concept theme or adopts the partner app's design (existing Master Plan decision D5). The concept look is the direction for the playground itself.
-10. Whether stage pools are fixed and curated (proposed) or drawn at random per play.
+10. *(Closed.)* Stage candidates are drawn at random from each category's remaining pool (confirmed, 3.6).
 11. Layout side: the confirmed pool on the right and categories on the left, or the concept image's mirror (7A.3).
 12. Whether the training screen shows a code panel, and whether it shows an accuracy figure, a "2 of 3 right" summary, or neither (7A.2).
 13. Which characters guide the child (robot only, or also the anime-style girl), and whether the guide stays scripted (7A.4).
 14. Who produces the art assets, and whether the concept image's characters may be reused (7A.8).
 
 **Data requirements**
-1. Verify the Level 1 data (counts per category, ids, labels, embeddings, splits). Level 1 needs 30 distinct training pictures per category (60 in all) arranged as three disjoint pools of 10 per category, plus at least nine separate test pictures.
-2. Source, license and prepare a Level 2 dataset with 30 distinct training pictures per category (90 in all), at least nine test pictures, embeddings and labels, and run the integrity checks.
-3. Prepare a Level 3 dataset after its categories are chosen (30 distinct training pictures per category plus test pictures).
+1. Verify the Level 1 data (counts per category, ids, labels, embeddings, splits). Under the remaining-pool rules Level 1 needs at least 15 training pictures per category (22 reported) plus at least nine separate test pictures (16 reported).
+2. Source, license and prepare a Level 2 dataset with at least 15 training pictures per category (45 in all; more gives variety), at least nine test pictures, embeddings and labels, and run the integrity checks.
+3. Prepare a Level 3 dataset after its categories are chosen (at least 15 training pictures per category plus test pictures).
 4. Run the data audit in 8.5 for every level before implementation and record the results.
 5. Run offline evaluation at 3, 5 and 10 per category with nested selections for each level before writing game text that describes any trend.
 
 **Technical questions**
 1. Contract changes in section 9, reviewed and approved against the Master Plan before implementation.
 2. Multiclass behavior and tests for Levels 2 and 3.
-3. Server error codes for wrong labels, ids outside the allowed stage pools, prediction limits and reveal order.
-4. Where stage pool assignments live (proposed: server configuration validated at start-up) and how they are produced during data preparation.
+3. Server error codes for wrong labels, prediction limits, reveal order and an available pool that is too small.
+4. Where stage candidates are drawn (proposed: the service, because only it knows the labels), how a stage-pool request carries the accepted ids, and how the pool rules are configured per level.
 5. Whether one-use-per-level for test pictures needs a server-side level session or can stay a UI rule.
 6. How wrong-image feedback and Reveal interact with rate limits and the model cap.
 7. How the existing front end (including `SortingGame.jsx`) lines up with this flow; it needs an audit before work starts.
 8. How the layout (up to 10 slots per category on the left, a pool of 20 or 30 pictures on the right) works on a phone, especially with three categories.
+9. Whether the service should verify that new selections came from the candidates it issued. The proposed design does not, and the game rules do not need it.

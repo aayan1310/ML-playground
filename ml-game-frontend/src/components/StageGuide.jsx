@@ -10,13 +10,20 @@ function prefersReducedMotion() {
   return typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 }
 
+// `character` swaps the speaker (e.g. Robo instead of the teacher) and
+// `side` places it: 'left' (teacher, enters from the left) or 'right' (Robo,
+// enters from the right like everywhere else in the game).
+// `finalLabel` replaces the button text on the last line.
 export default function StageGuide({
   t,
   dir = 'ltr',
   onFinished,
   lines: linesProp,
   nextLabel,
+  finalLabel,
   label,
+  character = teacherUrl,
+  side = 'left',
 }) {
   const defaultLines = useMemo(
     () => [t('stageGuide.line1'), t('stageGuide.line2'), t('stageGuide.line3')],
@@ -39,6 +46,7 @@ export default function StageGuide({
   const words = useMemo(() => current.split(' '), [current]);
   const shown = reducedMotion ? words.length : wordsShown;
   const typing = shown < words.length;
+  const onFinalStep = !typing && lineIndex === lines.length - 1;
 
   useEffect(() => {
     nextBtnRef.current?.focus();
@@ -81,7 +89,11 @@ export default function StageGuide({
 
   return createPortal(
     <div
-      className={'stage-guide' + (exiting ? ' stage-guide--exiting' : '')}
+      className={
+        'stage-guide' +
+        (side === 'right' ? ' stage-guide--right' : '') +
+        (exiting ? ' stage-guide--exiting' : '')
+      }
       dir={dir}
       role="dialog"
       aria-modal="true"
@@ -89,7 +101,7 @@ export default function StageGuide({
     >
       <div className="stage-guide__blocker" aria-hidden="true" />
       <div className="stage-guide__stage">
-        <img className="stage-guide__character" src={teacherUrl} alt="" aria-hidden="true" />
+        <img className="stage-guide__character" src={character} alt="" aria-hidden="true" />
         <div className="teacher-bubble stage-guide__bubble">
           <p className="visually-hidden" aria-live="polite">
             {current}
@@ -108,7 +120,7 @@ export default function StageGuide({
               handleNext();
             }}
           >
-            {nextLabel ?? t('teacher.next')}
+            {onFinalStep && finalLabel ? finalLabel : (nextLabel ?? t('teacher.next'))}
           </button>
         </div>
       </div>

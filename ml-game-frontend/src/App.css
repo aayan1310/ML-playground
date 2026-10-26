@@ -406,7 +406,7 @@
   justify-content: center;
 }
 
-/* Main heading of every stage-start screen (Intro, QuizPlaceholder, and
+/* Main heading of every stage-start screen (Intro, and
    future screens built on .intro-screen). Trebuchet MS's heaviest face is
    Bold (700); 800 only fell back to it, so the weight is set to the real
    face and a thin same-colour stroke painted behind the fill thickens the
@@ -501,6 +501,278 @@
   }
   .intro-screen .intro-screen__bubble {
     width: 100%;
+  }
+}
+
+/* ------------------------------------------------------- Stage 1 quiz */
+/* Lives inside the translucent .game-frame panel (rises in with
+   level-intro-enter, drops out with panel-exit). */
+.quiz-screen {
+  gap: clamp(12px, 2vh, 20px);
+  max-width: 760px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.quiz-screen__progress {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.quiz-screen__count {
+  margin: 0;
+  font-size: clamp(1rem, 1.6vw, 1.15rem);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+
+.quiz-screen__dots {
+  display: flex;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.quiz-screen__dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--pool-border);
+  opacity: 0.55;
+}
+
+.quiz-screen__dot.is-done {
+  background: var(--train-green);
+  opacity: 1;
+}
+
+.quiz-screen__dot.is-current {
+  background: var(--reveal-purple);
+  opacity: 1;
+  transform: scale(1.2);
+}
+
+.quiz-question__prompt {
+  margin: 0;
+  font-size: clamp(1.3rem, 2.6vw, 1.75rem);
+  line-height: 1.3;
+  color: var(--ink);
+}
+
+.quiz-question__prompt:focus {
+  outline: none;
+}
+
+.quiz-options {
+  display: grid;
+  gap: clamp(8px, 1.4vh, 12px);
+}
+
+/* Whole card is the click target; the real radio input stays in the
+   accessibility tree (keyboard arrows, screen readers) but is drawn by the
+   custom circle. */
+.quiz-option {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-height: 56px;
+  padding: 12px 16px;
+  background: var(--panel-bg);
+  border: 3px solid var(--pool-border);
+  border-radius: var(--card-radius);
+  box-shadow: var(--shadow-soft);
+  cursor: pointer;
+  transition:
+    border-color 0.15s ease,
+    background-color 0.15s ease,
+    transform 0.15s ease;
+}
+
+.quiz-option:hover {
+  border-color: var(--cat-border);
+  transform: translateY(-1px);
+}
+
+.quiz-option.is-selected {
+  border-color: var(--reveal-purple);
+  background: #f1ecfb;
+}
+
+.quiz-option__input {
+  position: absolute;
+  opacity: 0;
+  width: 1px;
+  height: 1px;
+}
+
+.quiz-option:has(.quiz-option__input:focus-visible) {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.quiz-option__radio {
+  flex: 0 0 auto;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 3px solid var(--ink-soft);
+  background: #fff;
+  display: grid;
+  place-items: center;
+}
+
+.quiz-option.is-selected .quiz-option__radio {
+  border-color: var(--reveal-purple);
+}
+
+.quiz-option.is-selected .quiz-option__radio::after {
+  content: '';
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--reveal-purple);
+}
+
+.quiz-option__text {
+  font-size: clamp(1rem, 1.7vw, 1.15rem);
+  line-height: 1.35;
+}
+
+.quiz-actions {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+/* ------------------------------------------------------- quiz report */
+.quiz-report {
+  gap: clamp(12px, 2vh, 18px);
+  max-width: 760px;
+  width: 100%;
+  margin: 0 auto;
+  text-align: center;
+  align-items: center;
+}
+
+.quiz-report__title {
+  margin: 0;
+  font-size: clamp(1.9rem, 4vw, 2.5rem);
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+.quiz-report__score {
+  margin: 0;
+  font-size: clamp(1.4rem, 3vw, 1.9rem);
+  font-weight: 700;
+  color: var(--reveal-purple);
+}
+
+.quiz-report__stats {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.quiz-report__stat {
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-weight: 700;
+  border: 2px solid;
+}
+
+.quiz-report__stat--correct {
+  color: var(--right);
+  background: #e6f6ec;
+  border-color: #9fd8b3;
+}
+
+.quiz-report__stat--incorrect {
+  color: var(--wrong);
+  background: #fdece6;
+  border-color: #f3b49f;
+}
+
+.quiz-report__stat--skipped {
+  color: var(--ink-soft);
+  background: #eef2f5;
+  border-color: #c9d4dc;
+}
+
+.quiz-report__all {
+  margin: 0;
+  font-size: 1.15rem;
+}
+
+.quiz-report__review-title {
+  margin: 4px 0 0;
+  font-size: clamp(1.1rem, 2vw, 1.3rem);
+}
+
+.quiz-review {
+  display: grid;
+  gap: 12px;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  text-align: start;
+}
+
+.quiz-review__item {
+  padding: 14px 16px;
+  background: var(--panel-bg);
+  border: 3px solid var(--pool-border);
+  border-inline-start: 8px solid var(--wrong);
+  border-radius: var(--card-radius);
+  box-shadow: var(--shadow-soft);
+}
+
+.quiz-review__item p {
+  margin: 0;
+}
+
+.quiz-review__item p + p {
+  margin-top: 6px;
+}
+
+.quiz-review__prompt {
+  font-weight: 700;
+  font-size: 1.05rem;
+}
+
+.quiz-review__yours {
+  color: var(--wrong);
+}
+
+.quiz-review__correct {
+  color: var(--right);
+  font-weight: 700;
+}
+
+.quiz-review__why {
+  color: var(--ink-soft);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .quiz-option {
+    transition: none;
+  }
+  .quiz-option:hover {
+    transform: none;
   }
 }
 
@@ -814,6 +1086,33 @@
   opacity: 1;
 }
 
+/* Stage 2 round 2: a picture kept from round 1 (locked in its box). */
+.slot--locked {
+  position: relative;
+}
+
+.slot--locked img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.slot__lock {
+  position: absolute;
+  top: 4px;
+  inset-inline-end: 4px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: var(--shadow-soft);
+  font-size: 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 /* ----------------------------------------------------------- train bar */
 .train-bar {
   display: flex;
@@ -1105,7 +1404,33 @@
 }
 
 .predict-actor--robo .predict-actor__character {
-  height: clamp(110px, 23vh, 220px);
+  height: calc(clamp(96px, 20vh, 190px) * var(--robo-scale));
+}
+
+/* Round 1: Robo hesitates before its guess is shown - a small unsure head
+   tilt, twice, after it has arrived (no extra waiting). */
+.predict-actor--thinking .predict-actor__character {
+  transform-origin: 50% 90%;
+  animation: robo-hesitate 1.1s ease-in-out 0.65s 2;
+}
+
+@keyframes robo-hesitate {
+  0%,
+  100% {
+    transform: rotate(0);
+  }
+  30% {
+    transform: rotate(-5deg);
+  }
+  65% {
+    transform: rotate(4deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .predict-actor--thinking .predict-actor__character {
+    animation: none;
+  }
 }
 
 .predict-bubble {
@@ -1197,7 +1522,7 @@
     height: clamp(48px, 8vh, 96px);
   }
   .predict-actor--robo .predict-actor__character {
-    height: clamp(52px, 9vh, 104px);
+    height: calc(clamp(48px, 8vh, 96px) * var(--robo-scale));
   }
   .teacher-bubble.predict-bubble {
     max-width: max(60px, min(220px, calc(50vw - 250px)));
@@ -1224,7 +1549,7 @@
     height: min(24vh, 140px);
   }
   .predict-actor--robo .predict-actor__character {
-    height: min(27vh, 165px);
+    height: calc(min(24vh, 140px) * var(--robo-scale));
   }
 }
 
@@ -1710,6 +2035,205 @@
   }
 }
 
+/* -------------------------------- Level 1 intro: teacher teaches Robo */
+/* TeacherIntro `turns` mode: teacher left, Robo right, both grounded at the
+   bottom (the section is screen-tall in fit mode, .app adds 34px of bottom
+   padding); one bubble sits on the speaker's side. */
+.teacher-screen--conversation {
+  justify-content: flex-end;
+  padding-bottom: 0;
+}
+
+/* The teacher stays on the left and Robo on the right in every language:
+   the layout is pinned to ltr, and Urdu (rtl) applies inside the bubble. */
+.convo {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: end;
+  column-gap: clamp(8px, 2vw, 24px);
+  width: 100%;
+  max-width: 1280px;
+  margin: 0 auto;
+  direction: ltr;
+}
+
+[dir='rtl'] .convo .convo__bubble {
+  direction: rtl;
+}
+
+.convo__character {
+  --convo-h: clamp(200px, 58vh, 520px);
+  height: var(--convo-h);
+  width: auto;
+  margin-bottom: calc(2vh - 34px);
+  filter: drop-shadow(0 8px 14px rgba(39, 64, 82, 0.3));
+  transform-origin: 50% 100%;
+  transition: filter 0.3s ease;
+}
+
+.convo__character--robo {
+  --convo-h: calc(clamp(200px, 58vh, 520px) * var(--robo-scale));
+  /* Feet level with the teacher's: teacher.png has 3.6% transparent space
+     under its feet, robot.png ~1%, so lift Robo by the difference. */
+  margin-bottom: calc(2vh - 34px + var(--convo-h) * 0.042);
+}
+
+/* The speaker bobs gently; the listener dims a little. */
+.convo__character.is-speaking {
+  animation: convo-talk 1.6s ease-in-out infinite;
+}
+
+.convo__character.is-listening {
+  filter: drop-shadow(0 8px 14px rgba(39, 64, 82, 0.3)) saturate(0.85) brightness(0.93);
+}
+
+@keyframes convo-talk {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
+.convo__slot {
+  align-self: center;
+  display: flex;
+  min-width: 0;
+  padding-bottom: 8vh;
+}
+
+.convo__slot--teacher {
+  justify-content: flex-start;
+}
+
+.convo__slot--robo {
+  justify-content: flex-end;
+}
+
+/* Narrower than the gap between the characters, so the bubble visibly
+   moves to the speaker's side (slot justify-content does the rest). */
+.convo .convo__bubble {
+  flex: 0 1 auto;
+  width: min(560px, 82%);
+  max-width: none;
+  min-height: 0;
+}
+
+.convo .teacher-bubble__text {
+  font-size: clamp(1.05rem, 1.9vw, 1.45rem);
+  min-height: 3em;
+}
+
+.convo__line {
+  animation: stage-guide-bubble 0.3s ease;
+}
+
+/* Robo's bubble: lilac, tail on the right pointing at Robo. */
+.convo .convo__bubble--robo {
+  background: #f7f3ff;
+  border-color: #b9a7e8;
+}
+
+/* The teacher's tail keeps pointing left at the teacher in rtl too. */
+[dir='rtl'] .convo .convo__bubble--teacher::before {
+  left: -9px;
+  right: auto;
+  border: 0;
+  border-left: 3px solid var(--pool-border);
+  border-bottom: 3px solid var(--pool-border);
+}
+
+.convo .convo__bubble--robo::before,
+[dir='rtl'] .convo .convo__bubble--robo::before {
+  left: auto;
+  right: -9px;
+  background: #f7f3ff;
+  border: 0;
+  border-top: 3px solid #b9a7e8;
+  border-right: 3px solid #b9a7e8;
+}
+
+.convo__bubble--robo .convo__name {
+  color: var(--reveal-purple);
+}
+
+/* Skip sits between the characters so it never covers Robo. */
+.teacher-screen--conversation .teacher-screen__skip {
+  right: auto;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+@media (orientation: portrait) {
+  .convo {
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: auto auto;
+    row-gap: clamp(8px, 1.5vh, 14px);
+  }
+  .convo__slot {
+    grid-column: 1 / -1;
+    grid-row: 1;
+    padding-bottom: 0;
+  }
+  .convo .convo__bubble {
+    width: 100%;
+  }
+  .convo__character--teacher {
+    --convo-h: min(32vh, 250px);
+    grid-row: 2;
+    grid-column: 1;
+    justify-self: start;
+  }
+  .convo__character--robo {
+    --convo-h: calc(min(32vh, 250px) * var(--robo-scale));
+    grid-row: 2;
+    grid-column: 2;
+    justify-self: end;
+  }
+  /* Tail points down at whoever is speaking. */
+  .convo .convo__bubble--teacher::before,
+  [dir='rtl'] .convo .convo__bubble--teacher::before {
+    left: 18%;
+    right: auto;
+    top: auto;
+    bottom: -9px;
+    border: 0;
+    border-bottom: 3px solid var(--pool-border);
+    border-right: 3px solid var(--pool-border);
+  }
+  .convo .convo__bubble--robo::before,
+  [dir='rtl'] .convo .convo__bubble--robo::before {
+    left: auto;
+    right: 18%;
+    top: auto;
+    bottom: -9px;
+    border: 0;
+    border-bottom: 3px solid #b9a7e8;
+    border-right: 3px solid #b9a7e8;
+  }
+}
+
+@media (orientation: landscape) and (max-height: 460px) {
+  .convo__character {
+    --convo-h: min(62vh, 240px);
+  }
+  .convo__character--robo {
+    --convo-h: calc(min(62vh, 240px) * var(--robo-scale));
+  }
+  .convo__slot {
+    padding-bottom: 4vh;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .convo__character.is-speaking,
+  .convo__line {
+    animation: none;
+  }
+}
+
 /* ----------------------------------- Level 1 first-step teacher guidance */
 .stage-guide {
   position: fixed;
@@ -1853,6 +2377,74 @@
   }
 }
 
+/* Robo speaking through StageGuide: mirrored to the right side. The base
+   layout above is the teacher's (anchored left, enters from the left), so
+   Robo needs its own anchor, order, entrance/exit direction and bubble tail.
+   Entrance reuses Robo's train-robot-in (from beyond the right edge). */
+.stage-guide--right {
+  justify-content: flex-end;
+}
+
+.stage-guide--right .stage-guide__stage {
+  flex-direction: row-reverse;
+  transform-origin: right bottom;
+  animation: train-robot-in 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.stage-guide--right .stage-guide__character {
+  animation: none;
+}
+
+/* Robo at shoulder height of the teacher (same sizes as the teacher's
+   .stage-guide__character, scaled). */
+.stage-guide--right .stage-guide__character {
+  height: calc(clamp(150px, 30vh, 290px) * var(--robo-scale));
+}
+
+@media (orientation: portrait) {
+  .stage-guide--right .stage-guide__character {
+    height: calc(clamp(110px, 21vh, 190px) * var(--robo-scale));
+  }
+}
+
+@media (max-height: 560px) {
+  .stage-guide--right .stage-guide__character {
+    height: calc(min(26vh, 140px) * var(--robo-scale));
+  }
+}
+
+.stage-guide--right .teacher-bubble::before,
+[dir='rtl'] .stage-guide--right .teacher-bubble::before {
+  left: auto;
+  right: -9px;
+  border: 0;
+  border-top: 3px solid var(--pool-border);
+  border-right: 3px solid var(--pool-border);
+}
+
+.stage-guide--right.stage-guide--exiting .stage-guide__stage {
+  transform: translateX(calc(100% + 140px)) translateY(12px);
+}
+
+.stage-guide--right.stage-guide--exiting .stage-guide__character {
+  transform: none;
+}
+
+@media (orientation: portrait) {
+  .stage-guide--right .stage-guide__stage {
+    flex-direction: column;
+  }
+  .stage-guide--right .teacher-bubble::before,
+  [dir='rtl'] .stage-guide--right .teacher-bubble::before {
+    left: calc(50% - 7px);
+    right: auto;
+    top: -9px;
+    border: 0;
+    border-top: 3px solid var(--pool-border);
+    border-left: 3px solid var(--pool-border);
+  }
+}
+
 /* ------------------------------- Level 1 teacher + robot training sequence */
 .train-sequence {
   position: fixed;
@@ -1905,7 +2497,7 @@
 }
 
 .train-sequence__character--robot {
-  height: clamp(170px, 34vh, 320px);
+  height: calc(clamp(150px, 30vh, 280px) * var(--robo-scale));
 }
 
 .train-sequence__robot-wrap {
@@ -2083,7 +2675,7 @@
     height: clamp(100px, 18vh, 170px);
   }
   .train-sequence__character--robot {
-    height: clamp(120px, 21vh, 190px);
+    height: calc(clamp(100px, 18vh, 170px) * var(--robo-scale));
   }
   .train-sequence .train-sequence__bubble {
     width: 100%;
@@ -2107,7 +2699,7 @@
     height: min(26vh, 150px);
   }
   .train-sequence__character--robot {
-    height: min(30vh, 180px);
+    height: calc(min(26vh, 150px) * var(--robo-scale));
   }
 }
 
@@ -2141,7 +2733,10 @@
     animation: none;
   }
   .stage-guide--exiting .stage-guide__stage,
-  .stage-guide--exiting .stage-guide__character {
+  .stage-guide--exiting .stage-guide__character,
+  .stage-guide--right .stage-guide__stage,
+  .stage-guide--right.stage-guide--exiting .stage-guide__stage {
+    animation: none;
     transform: none;
     transition: none;
   }

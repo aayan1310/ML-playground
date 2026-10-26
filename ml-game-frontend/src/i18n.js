@@ -5,14 +5,13 @@
 
 export const LANGS = [
   { code: 'en', label: 'English' },
+  { code: 'ur', label: 'اردو (Urdu)' },
   { code: 'ru', label: 'Roman Urdu' },
-  { code: 'ur', label: 'اردو' },
 ];
 
-// TEMPORARY: the game runs English-only while this is false. The selector,
-// translations, RTL styles and ru/ur strings all stay intact; flipping this
-// to true restores the menu language selector as a one-line change.
-export const LANGUAGE_SELECTOR_ENABLED = false;
+// The main-menu language selector (shown before Begin Lesson). Setting this
+// to false forces English everywhere and hides the selector again.
+export const LANGUAGE_SELECTOR_ENABLED = true;
 
 const en = {
   'app.title': 'ML Playground',
@@ -122,15 +121,29 @@ const en = {
   'predict.finish': 'See the results',
   'predict.continue': 'Continue',
   'sort.instructionRetry':
-    'Now put {count} cats in the Cats box and {count} dogs in the Dogs box. Drag a picture, or tap it and choose a box.',
+    'Your first cat and dog stay in the boxes. Add {more} more cats and {more} more dogs so each box has {count}. Drag a picture, or tap it and choose a box.',
+  'sort.kept': 'Kept from last time',
 
-  // Stage 2, end of round 1: why one example each is not enough.
-  'retry.right': 'Robo got that one right, but it was only {percent}% sure.',
-  'retry.wrong': 'Oh no, Robo guessed wrong! It was {percent}% sure, but the picture is a {category}.',
-  'retry.why':
-    "That's because we only trained Robo on one picture of each animal. With so few examples, it can't be very sure, and it can easily guess wrong.",
-  'retry.again': "Let's try again! This time, choose {count} pictures of each animal for the training data.",
-  'retry.better': 'More examples should help Robo guess correctly more often, and be more confident.',
+  // Stage 2, round 1: Robo before/after its first prediction, then the
+  // teacher explains why two pictures are not enough.
+  'robo.ready': "Okay! I've learned from one cat and one dog. Let's see if I can recognise a new animal!",
+  'robo.thinking1': 'Hmm... this one looks a little tricky!',
+  'robo.thinking2': "I've only practised with one cat and one dog... Let me think. I hope I've learned enough!",
+  'predict.showGuess': "Reveal Robo's guess",
+  'robo.gotIt':
+    "Yay, I got this one! But two pictures isn't much practice. Next time, a different cat or dog might fool me!",
+  'robo.mixedUp':
+    "Oops! I got this one mixed up. I've only seen two training pictures, so I might need more examples!",
+  'retry.limited':
+    "Robo has only learned from one cat and one dog. Two pictures aren't enough to show all the different ways cats and dogs can look!",
+  'retry.oneRight':
+    "Getting one picture right doesn't prove Robo can recognise every cat and dog. And when Robo said it was {percent}% sure, that was how confident it felt, not a score of how often it is right.",
+  'retry.sureWrong':
+    "Robo said it was {percent}% sure, but it was still wrong. Feeling sure is not the same as being right!",
+  'retry.more': "Let's give Robo some more examples so it can learn about different poses, colours, and backgrounds.",
+  'retry.again':
+    "Let's try again! This time we'll train Robo with {count} pictures of each animal. Your first two pictures stay in the boxes, so you just add {more} more of each.",
+  'retry.giveMore': 'Give Robo More Examples',
 
   // Stage 2, round 2: re-testing the same picture and comparing.
   'compare.intro':
@@ -141,9 +154,9 @@ const en = {
   'compare.fixed':
     "Yes, it's a {category}! Last time Robo guessed wrong, but now it got it right, and it is {now}% sure. More examples helped!",
   'compare.sameRight':
-    "Yes, it's a {category}! Robo got it right again. It is {now}% sure now, and it was {before}% sure last time. More examples don't change every guess, but they usually help.",
+    "Yes, it's a {category}! Robo got it right again. It is {now}% sure now, and it was {before}% sure last time. More examples often help, but they don't guarantee a better guess every time.",
   'compare.stillWrong':
-    "Hmm, it's actually a {category}. Even with more examples, Robo got this one wrong. It was {now}% sure this time, and {before}% sure last time. Some pictures are just tricky!",
+    "Hmm, it's actually a {category}. Even with more examples, Robo got this one wrong. It was {now}% sure this time, and {before}% sure last time. More examples can help, but how clear and varied the pictures are matters too!",
   'compare.next': 'Now pick {count} more pictures to test Robo!',
   'predict.roboLabel': 'Robot prediction',
   'predict.teacherLabel': 'Teacher answer',
@@ -179,14 +192,37 @@ const en = {
   'music.off': 'Music off',
   'teacher.next': 'Next',
   'teacher.skip': 'Skip',
-  'teacher.line1':
-    "Hellooo, student Welcome to our little learning lab! I'm your teacher, and I'll be guiding you through this game. I'm so happy you're here!",
-  'teacher.line2':
-    "Today, we're going to learn about something super cool called Machine Learning, or ML for short! It's how we teach computers to learn from examples instead of telling them every single thing to do!",
-  'teacher.line3':
-    "Why is that useful? Well, computers can use what they've learned to help us with all sorts of things, like recognizing pictures, finding patterns, and making guesses about something new!",
-  'teacher.line4':
-    "And now, you get to try it yourself! We'll learn step by step, play some games, and teach our robot along the way. Are you ready? Let's get started!",
+  // Level 1 introduction: the teacher teaches Robo (odd = teacher, even = Robo).
+  'convo.teacherName': "Teacher",
+  'convo.roboName': "Robo",
+  'introTalk.1':
+    "Hey, Robo! Today, we're going to explore something called machine learning.",
+  'introTalk.2':
+    "Machine learning? What's that?",
+  'introTalk.3':
+    "It's a way for computers to learn patterns from examples and use what they've learned to make predictions.",
+  'introTalk.4':
+    "So, instead of being told every answer, I can learn from examples?",
+  'introTalk.5':
+    "Exactly! The examples help you learn patterns that you can use when you see something new.",
+  'introTalk.6':
+    "Let's try it together. I'll help you learn to tell pictures of cats and dogs apart.",
+  'introTalk.7':
+    "Cats and dogs? I'm not sure what those are yet! What do they look like?",
+  'introTalk.8':
+    "They're two different kinds of animals. I'll show you pictures and tell you which ones are cats and which ones are dogs. Those examples will help you learn their patterns.",
+  'introTalk.9':
+    "Oh! So I'll get to look at examples and learn how to tell them apart?",
+  'introTalk.10':
+    "That's right! Then we'll see if you can use what you've learned to make predictions about new pictures.",
+  'introTalk.11':
+    "That sounds exciting! What if I get a picture wrong?",
+  'introTalk.12':
+    "That's okay! Machine learning models can make mistakes. We'll check your predictions and see how you can improve with more useful examples.",
+  'introTalk.13':
+    "I'm ready to give it a try! Let's learn about cats and dogs!",
+  'introTalk.14':
+    "Great! Let's begin with your first lesson.",
 
   'stageGuide.label': 'Teacher guidance',
   'stageGuide.line1':
@@ -196,43 +232,78 @@ const en = {
   'stageGuide.line3':
     'Pick one cat and one dog from the pictures: the cat goes in the Cats box, and the dog goes in the Dogs box.',
 
-  // Stage 1 classroom lesson. Every line is quiz material for Task 2.
+  // Stage 1 classroom lesson.
   'lesson.label': 'Stage 1 — What is machine learning?',
   'lesson.stage': 'Level 1 — Stage 1',
   'lesson.toQuiz': 'Start the quiz',
-  'lesson.line1':
-    "Welcome to the classroom! Let's start by learning about machine learning. Pay attention, because there'll be a little quiz at the end!",
-  'lesson.line2':
-    'Machine learning means teaching a computer to find patterns by showing it lots of examples.',
-  'lesson.line3':
-    'A pattern is a clue that keeps showing up. Cats often have pointy ears and long whiskers. Clues like that make a pattern!',
-  'lesson.line4':
-    "We don't write every rule for the computer ourselves. Instead, it studies the examples and works out the rules on its own.",
-  'lesson.line5':
-    'Why is that useful? Once it has learned a pattern, the computer can make a guess about something new that it has never seen before.',
-  'lesson.line6':
-    'That guess is called a prediction. Machine learning helps recommend songs, sort out junk email, and guess the next word you type!',
-  'lesson.line7':
-    'The part of the computer that learns is called a model. The model learns patterns from data, then uses them to make predictions.',
-  'lesson.line8':
-    'Data just means information, like pictures, numbers or words. The examples we use to teach a model are called training data.',
-  'lesson.line9':
-    'Each example can have a label, which is the right answer. A picture of a cat gets the label "cat".',
-  'lesson.line10':
-    "A model doesn't know the answers by magic. It only knows what it learned from its examples, just like you get better by practising.",
-  'lesson.line11':
-    "Models can make mistakes! A model can even be very sure and still be wrong. That's why we always check its answers.",
-  'lesson.line12':
-    'Good examples matter. If we give a model wrong labels, like calling a cat a dog, it learns the wrong pattern.',
-  'lesson.line13':
-    'Variety matters too. If a model only ever sees black cats, an orange cat might confuse it. Lots of different examples help it learn better.',
-  'lesson.line14':
-    "Now that we've learned the basics, let's try the quiz!",
+  // Stage 1 lesson as a conversation (speakers per turn: Stage1.jsx).
+  'lessonTalk.1':
+    "Alright, Robo! Before we start learning about cats and dogs, let's talk about how you'll learn.",
+  'lessonTalk.2':
+    "Does that mean you'll tell me the answer to every picture?",
+  'lessonTalk.3':
+    "Not quite! With machine learning, you can learn patterns from examples instead of being given every answer one by one.",
+  'lessonTalk.4':
+    "So I can use what I learn from examples to make a guess about a new picture?",
+  'lessonTalk.5':
+    "Exactly! That's the idea.",
+  'lessonTalk.6':
+    "First, I'll give you examples. Some pictures will show cats, and others will show dogs. We'll label them so you know which animal each picture shows.",
+  'lessonTalk.7':
+    "The label tells me what is in each training picture?",
+  'lessonTalk.8':
+    "That's right! The examples and their labels help you learn which patterns go with cats and which go with dogs.",
+  'lessonTalk.9':
+    "Then I should look carefully at the pictures and learn from their differences!",
+  'lessonTalk.10':
+    "You got it!",
+  'lessonTalk.11':
+    "But what do we call the part that learns from all those examples?",
+  'lessonTalk.12':
+    "That's called a model! A model learns patterns from the training examples, then uses them to make predictions about new pictures.",
+  'lessonTalk.13':
+    "So my model will help me decide whether a new picture shows a cat or a dog?",
+  'lessonTalk.14':
+    "Exactly. But remember, a prediction is a guess based on what the model has learned. It isn't always right.",
+  'lessonTalk.15':
+    "What happens if I guess the animal incorrectly?",
+  'lessonTalk.16':
+    "That can happen! We'll check your predictions against the correct answers. If you make mistakes, we can work out what might help you improve.",
+  'lessonTalk.17':
+    "So I shouldn't think I'm perfect just because I get one picture right?",
+  'lessonTalk.18':
+    "Exactly! We need to check how well you do on more than one example.",
+  'lessonTalk.19':
+    "Would giving me hundreds of pictures guarantee that I'll get every prediction right?",
+  'lessonTalk.20':
+    "No, Robo. The examples need to be useful, correctly labelled, and varied. Lots of poor or repetitive examples won't necessarily help you learn the patterns you need.",
+  'lessonTalk.21':
+    "So I need good examples, not just lots of them!",
+  'lessonTalk.22':
+    "That's right. And we'll see how your choices affect your results when we start training.",
+  'lessonTalk.23':
+    "I think I'm ready! Can we check what I've understood before I start learning?",
+  'lessonTalk.24':
+    "Good idea, Robo! Let's see what you've picked up so far.",
 
-  // TEMPORARY (Task 2 replaces this with the real quiz).
-  'quizPlaceholder.title': 'Quiz time!',
-  'quizPlaceholder.text': "The quiz is still being made. For now, let's go and teach Robo in Stage 2!",
-  'quizPlaceholder.continue': 'Go to Stage 2',
+  // Stage 1 quiz (questions live in src/quiz/questionBank.js) and report.
+  'quiz.label': 'Stage 1 quiz',
+  'quiz.progress': 'Question {current} of {total}',
+  'quiz.confirm': 'Confirm',
+  'quiz.skip': 'Skip',
+  'quiz.wellDone': "Well done! Let's see how you've done!",
+  'quiz.seeResults': 'See my results',
+  'report.title': 'Your quiz results',
+  'report.score': '{score} out of {total} correct',
+  'report.correct': 'Correct: {count}',
+  'report.incorrect': 'Incorrect: {count}',
+  'report.skipped': 'Skipped: {count}',
+  'report.reviewTitle': "Let's look at the ones you missed",
+  'report.allCorrect': 'You got every question right. Amazing!',
+  'report.yourAnswer': 'Your answer: {answer}',
+  'report.skippedAnswer': 'Your answer: Skipped',
+  'report.correctAnswer': 'Correct answer: {answer}',
+  'report.continue': 'Continue to Stage 2',
 };
 
 const ru = {
@@ -342,14 +413,27 @@ const ru = {
   'predict.finish': 'Nateeja dekhein',
   'predict.continue': 'Aage barhein',
   'sort.instructionRetry':
-    'Ab {count} billiyan Cats box mein aur {count} kuttay Dogs box mein lagayein. Tasveer drag karein ya tap karke box chunein.',
+    'Aap ki pehli billi aur kutta boxes mein hi rahenge. {more} aur billiyan aur {more} aur kuttay lagayein taake har box mein {count} hon. Tasveer drag karein ya tap karke box chunein.',
+  'sort.kept': 'Pichhli baar se rakhi hui',
 
-  'retry.right': 'Robo ne yeh theek bataya, lekin woh sirf {percent}% yaqeen se tha.',
-  'retry.wrong': 'Oh ho, Robo ka andaza ghalat tha! Woh {percent}% yaqeen se tha, lekin tasveer {category} ki hai.',
-  'retry.why':
-    'Aisa is liye hua ke humne Robo ko har jaanwar ki sirf ek tasveer se sikhaya. Itni kam misaalon se woh zyada yaqeen nahi kar sakta, aur aasani se ghalti kar sakta hai.',
-  'retry.again': 'Chaliye dobara koshish karte hain! Is baar training data ke liye har jaanwar ki {count} tasveerein chunein.',
-  'retry.better': 'Zyada misaalein Robo ko aksar sahi andaza lagane aur zyada yaqeen karne mein madad karengi.',
+  'robo.ready': 'Theek hai! Maine ek billi aur ek kutte se seekha hai. Dekhte hain kya main naye jaanwar ko pehchaan sakta hoon!',
+  'robo.thinking1': 'Hmm... yeh thodi mushkil lag rahi hai!',
+  'robo.thinking2': 'Maine sirf ek billi aur ek kutte ke saath practice ki hai... Sochne do. Umeed hai maine kaafi seekha hai!',
+  'predict.showGuess': 'Robo ka andaza dikhayein',
+  'robo.gotIt':
+    'Yay, yeh theek nikla! Lekin do tasveerein zyada practice nahi. Agli baar koi aur billi ya kutta mujhe confuse kar sakta hai!',
+  'robo.mixedUp':
+    'Oops! Mujh se yeh gadbad ho gaya. Maine sirf do training tasveerein dekhi hain, shayad mujhe aur misaalon ki zaroorat hai!',
+  'retry.limited':
+    'Robo ne sirf ek billi aur ek kutte se seekha hai. Do tasveerein yeh dikhane ke liye kaafi nahi ke billiyan aur kuttay kitni tarah ke dikh sakte hain!',
+  'retry.oneRight':
+    'Ek tasveer theek batane se yeh saabit nahi hota ke Robo har billi aur kutte ko pehchaan sakta hai. Aur jab Robo ne kaha woh {percent}% sure hai, toh yeh us ka yaqeen tha, yeh nahi ke woh kitni baar sahi hota hai.',
+  'retry.sureWrong':
+    'Robo ne kaha woh {percent}% sure hai, phir bhi woh ghalat tha. Yaqeen hona aur sahi hona ek baat nahi!',
+  'retry.more': 'Chaliye Robo ko aur misaalein dete hain taake woh mukhtalif andaaz, rang aur pas-manzar ke baare mein seekh sake.',
+  'retry.again':
+    'Chaliye dobara koshish karte hain! Is baar hum Robo ko har jaanwar ki {count} tasveeron se sikhayenge. Aap ki pehli do tasveerein boxes mein rahengi, bas har ek ki {more} aur lagayein.',
+  'retry.giveMore': 'Robo ko aur misaalein dein',
 
   'compare.intro':
     'Ab jab humne Robo ko behtar sikhaya aur zyada misaalein di hain, dekhte hain ke woh pichhli baar wali usi tasveer ke baare mein kya kehta hai.',
@@ -359,9 +443,9 @@ const ru = {
   'compare.fixed':
     'Haan, yeh {category} hai! Pichhli baar Robo ka andaza ghalat tha, lekin ab theek hai, aur woh {now}% yaqeen se hai. Zyada misaalon ne madad ki!',
   'compare.sameRight':
-    'Haan, yeh {category} hai! Robo ne phir theek bataya. Ab woh {now}% yaqeen se hai, aur pichhli baar {before}% tha. Zyada misaalein har andaza nahi badaltin, lekin aksar madad karti hain.',
+    'Haan, yeh {category} hai! Robo ne phir theek bataya. Ab woh {now}% yaqeen se hai, aur pichhli baar {before}% tha. Zyada misaalein aksar madad karti hain, lekin har baar behtar andaze ki zamanat nahi.',
   'compare.stillWrong':
-    'Hmm, yeh dar-asal {category} hai. Zyada misaalon ke baad bhi Robo ne yeh ghalat bataya. Is baar woh {now}% yaqeen se tha, aur pichhli baar {before}%. Kuch tasveerein mushkil hoti hain!',
+    'Hmm, yeh dar-asal {category} hai. Zyada misaalon ke baad bhi Robo ne yeh ghalat bataya. Is baar woh {now}% yaqeen se tha, aur pichhli baar {before}%. Zyada misaalein madad kar sakti hain, lekin tasveeron ka saaf aur mukhtalif hona bhi zaroori hai!',
   'compare.next': 'Ab Robo ko test karne ke liye {count} aur tasveerein chunein!',
   'predict.roboLabel': 'Robot ki prediction',
   'predict.teacherLabel': 'Teacher ka jawaab',
@@ -390,14 +474,36 @@ const ru = {
   'guide.predictWrong': 'Mushkil sawaal! Model ghalat tha — isi se hum seekhte hain.',
   'guide.complete': 'Aaj aap ne computer ko sikhaya. Zabardast kaam!',
 
-  'teacher.line1':
-    'Hellooo, student! Hamari chhoti si learning lab mein khush aamdeed! Main aap ki teacher hoon, aur main is game mein aap ki rehnumai karungi. Mujhe bohat khushi hai ke aap yahan aaye hain!',
-  'teacher.line2':
-    'Aaj hum ek bohat hi mazedar cheez seekhne wale hain jise Machine Learning, ya ML kehte hain! Yeh aise hota hai ke hum computers ko misaalon se seekhna sikhate hain, bajaye yeh batane ke ke har ek chhoti cheez kya karni hai!',
-  'teacher.line3':
-    'Yeh faidemand kyun hai? Toh, computers apni seekhi hui cheezein istemal karke humari madad kar sakte hain \u2014 jaise tasveerein pehchanna, patterns dhoondna, aur kisi nayi cheez ke baare mein andaza lagana!',
-  'teacher.line4':
-    'Aur ab, aap khud try karein! Hum qadam ba qadam seekhenge, kuch games khelenge, aur saath saath apne robot ko sikhayenge. Aap tayyar hain? Chaliye shuru karein!',
+  'convo.teacherName': "Teacher",
+  'convo.roboName': "Robo",
+  'introTalk.1':
+    "Aray, Robo! Aaj hum aik aisi cheez ke baare mein jaanenge jise machine learning kehte hain.",
+  'introTalk.2':
+    "Machine learning? Yeh kya hoti hai?",
+  'introTalk.3':
+    "Yeh aik aisa tareeqa hai jis mein computer misaalon se patterns seekhte hain aur phir seekhi hui baaton ki madad se andaza lagate hain.",
+  'introTalk.4':
+    "Toh kya mujhe har sawaal ka jawaab batane ke bajaye, misaalon se seekhne ka mauqa mil sakta hai?",
+  'introTalk.5':
+    "Bilkul! Misaalein tumhein aise patterns seekhne mein madad deti hain jinhein tum kisi nayi cheez ko dekh kar istemaal kar sakte ho.",
+  'introTalk.6':
+    "Aao, mil kar koshish karte hain. Main tumhein billiyon aur kutton ki tasveeron mein farq pehchanna sikhaunga.",
+  'introTalk.7':
+    "Billiyan aur kutte? Mujhe abhi nahi pata ke yeh kya hote hain! Yeh dikhte kaise hain?",
+  'introTalk.8':
+    "Yeh do mukhtalif qisam ke jaanwar hain. Main tumhein tasveerein dikhaunga aur bataunga ke kaun si tasveerein billiyon ki hain aur kaun si kutton ki. In misaalon se tum inke patterns seekh sako ge.",
+  'introTalk.9':
+    "Oh! Toh mujhe misaalein dekhne ko milengi, aur main seekh sakunga ke in mein farq kaise pehchanna hai?",
+  'introTalk.10':
+    "Bilkul durust! Phir hum dekhenge ke kya tum seekhi hui baaton ko nayi tasveeron ke baare mein andaza lagane ke liye istemaal kar sakte ho.",
+  'introTalk.11':
+    "Yeh toh bohat mazedaar lag raha hai! Lekin agar main kisi tasveer ke baare mein ghalat jawaab de doon toh?",
+  'introTalk.12':
+    "Koi baat nahi! Machine learning ke models se bhi ghaltiyan ho sakti hain. Hum tumhare andazon ko jaanchenge aur dekhenge ke mazeed achhi misaalon ki madad se tum kaise behtar ho sakte ho.",
+  'introTalk.13':
+    "Main koshish karne ke liye tayyar hoon! Aao, billiyon aur kutton ke baare mein seekhte hain!",
+  'introTalk.14':
+    "Bohat khoob! Aao, apna pehla sabaq shuru karte hain.",
 
   'stageGuide.label': 'Teacher ki rehnumai',
   'teacher.next': 'Agla',
@@ -411,37 +517,72 @@ const ru = {
   'lesson.label': 'Stage 1 — Machine learning kya hai?',
   'lesson.stage': 'Level 1 — Stage 1',
   'lesson.toQuiz': 'Quiz shuru karein',
-  'lesson.line1':
-    'Classroom mein khush aamdeed! Chaliye machine learning ke baare mein seekhna shuru karte hain. Dhyan se suniye, kyun ke aakhir mein ek chhota sa quiz hoga!',
-  'lesson.line2':
-    'Machine learning ka matlab hai computer ko bohat saari misaalein dikha kar patterns dhoondna sikhana.',
-  'lesson.line3':
-    'Pattern ek aisa ishara hai jo baar baar nazar aata hai. Billiyon ke aksar nukeele kaan aur lambi moonchein hoti hain. Aise ishare pattern banate hain!',
-  'lesson.line4':
-    'Hum computer ke liye har qaanoon khud nahi likhte. Balke woh misaalon ko parhta hai aur qaanoon khud dhoond leta hai.',
-  'lesson.line5':
-    'Yeh faidemand kyun hai? Jab woh pattern seekh leta hai, toh computer kisi nayi cheez ke baare mein andaza laga sakta hai jo usne pehle kabhi nahi dekhi.',
-  'lesson.line6':
-    'Us andaze ko prediction kehte hain. Machine learning gaane suggest karne, junk email alag karne, aur aap ka agla lafz guess karne mein madad karti hai!',
-  'lesson.line7':
-    'Computer ka jo hissa seekhta hai use model kehte hain. Model data se patterns seekhta hai, phir unse predictions karta hai.',
-  'lesson.line8':
-    'Data ka matlab hai maloomat, jaise tasveerein, numbers ya alfaaz. Model ko sikhane wali misaalon ko training data kehte hain.',
-  'lesson.line9':
-    'Har misaal ka ek label ho sakta hai, jo sahi jawaab hota hai. Billi ki tasveer ko label "cat" milta hai.',
-  'lesson.line10':
-    'Model ko jawaab jaadu se nahi pata. Use sirf woh pata hai jo usne apni misaalon se seekha, bilkul jaise aap practice se behtar hote hain.',
-  'lesson.line11':
-    'Models ghalti kar sakte hain! Model bohat yaqeen se bhi ghalat ho sakta hai. Isi liye hum hamesha us ke jawaab check karte hain.',
-  'lesson.line12':
-    'Achhi misaalein zaroori hain. Agar hum model ko ghalat labels dein, jaise billi ko kutta kehna, toh woh ghalat pattern seekhta hai.',
-  'lesson.line13':
-    'Mukhtalif misaalein bhi zaroori hain. Agar model ne sirf kaali billiyan dekhi hon, toh narangi billi use confuse kar sakti hai. Tarah tarah ki misaalein use behtar sikhati hain.',
-  'lesson.line14': 'Ab jab humne buniyadi baatein seekh li hain, chaliye quiz try karte hain!',
+  'lessonTalk.1':
+    "Chalo, Robo! Billiyon aur kutton ke baare mein seekhne se pehle, baat karte hain ke tum kaise seekhoge.",
+  'lessonTalk.2':
+    "Kya iska matlab hai ke aap mujhe har tasveer ka jawaab batayengi?",
+  'lessonTalk.3':
+    "Bilkul nahi! Machine learning mein tum misaalon se patterns seekh sakte ho, bajaye is ke ke tumhein har jawaab ek ek karke diya jaye.",
+  'lessonTalk.4':
+    "Toh main misaalon se jo seekhunga, usse nayi tasveer ke baare mein andaza laga sakta hoon?",
+  'lessonTalk.5':
+    "Bilkul! Yahi khayal hai.",
+  'lessonTalk.6':
+    "Pehle main tumhein misaalein dungi. Kuch tasveeron mein billiyan hongi aur kuch mein kuttay. Hum un par label lagayenge taake tumhein pata ho ke har tasveer mein kaun sa jaanwar hai.",
+  'lessonTalk.7':
+    "Label mujhe batata hai ke har training tasveer mein kya hai?",
+  'lessonTalk.8':
+    "Theek kaha! Misaalein aur unke labels tumhein seekhne mein madad karte hain ke kaun se patterns billiyon ke hain aur kaun se kutton ke.",
+  'lessonTalk.9':
+    "Toh mujhe tasveeron ko dhyan se dekhna chahiye aur unke farq se seekhna chahiye!",
+  'lessonTalk.10':
+    "Bilkul sahi!",
+  'lessonTalk.11':
+    "Lekin us hisse ko kya kehte hain jo in sab misaalon se seekhta hai?",
+  'lessonTalk.12':
+    "Use model kehte hain! Model training misaalon se patterns seekhta hai, phir unse nayi tasveeron ke baare mein predictions karta hai.",
+  'lessonTalk.13':
+    "Toh mera model mujhe faisla karne mein madad karega ke nayi tasveer mein billi hai ya kutta?",
+  'lessonTalk.14':
+    "Bilkul. Lekin yaad rakhna, prediction ek andaza hai jo model ke seekhe hue par mabni hai. Woh hamesha sahi nahi hota.",
+  'lessonTalk.15':
+    "Agar main jaanwar ka ghalat andaza lagaun toh kya hoga?",
+  'lessonTalk.16':
+    "Aisa ho sakta hai! Hum tumhari predictions ko sahi jawaabon se check karenge. Agar ghaltiyan hon, toh hum dekh sakte hain ke behtar hone mein kya madad karega.",
+  'lessonTalk.17':
+    "Toh mujhe yeh nahi sochna chahiye ke main perfect hoon sirf is liye ke ek tasveer theek bata di?",
+  'lessonTalk.18':
+    "Bilkul! Humein dekhna hoga ke tum ek se zyada misaalon par kaisa karte ho.",
+  'lessonTalk.19':
+    "Agar aap mujhe saikron tasveerein dein, toh kya main har prediction sahi karunga?",
+  'lessonTalk.20':
+    "Nahi, Robo. Misaalein kaam ki, sahi label wali, aur mukhtalif honi chahiyein. Bohat saari kharab ya ek jaisi misaalein zaroori nahi ke tumhein woh patterns sikhayein jo tumhein chahiye.",
+  'lessonTalk.21':
+    "Toh mujhe achhi misaalein chahiyein, sirf zyada nahi!",
+  'lessonTalk.22':
+    "Theek kaha. Aur jab hum training shuru karenge, toh dekhenge ke tumhari choices tumhare nateejon par kaisa asar daalti hain.",
+  'lessonTalk.23':
+    "Mujhe lagta hai main tayyar hoon! Kya seekhna shuru karne se pehle hum check kar sakte hain ke main ne kya samjha?",
+  'lessonTalk.24':
+    "Achha khayal hai, Robo! Dekhte hain tumne ab tak kya seekha.",
 
-  'quizPlaceholder.title': 'Quiz ka waqt!',
-  'quizPlaceholder.text': 'Quiz abhi ban raha hai. Filhaal, chaliye Stage 2 mein Robo ko sikhate hain!',
-  'quizPlaceholder.continue': 'Stage 2 par jayein',
+  'quiz.label': 'Stage 1 quiz',
+  'quiz.progress': 'Sawaal {current} / {total}',
+  'quiz.confirm': 'Pakka karein',
+  'quiz.skip': 'Chhor dein',
+  'quiz.wellDone': 'Shabaash! Chaliye dekhte hain aap ne kaisa kiya!',
+  'quiz.seeResults': 'Mera nateeja dikhayein',
+  'report.title': 'Aap ka quiz nateeja',
+  'report.score': '{total} mein se {score} sahi',
+  'report.correct': 'Sahi: {count}',
+  'report.incorrect': 'Ghalat: {count}',
+  'report.skipped': 'Chhore gaye: {count}',
+  'report.reviewTitle': 'Chaliye jo reh gaye unhein dekhte hain',
+  'report.allCorrect': 'Aap ne har sawaal sahi kiya. Zabardast!',
+  'report.yourAnswer': 'Aap ka jawaab: {answer}',
+  'report.skippedAnswer': 'Aap ka jawaab: Chhor diya',
+  'report.correctAnswer': 'Sahi jawaab: {answer}',
+  'report.continue': 'Stage 2 par jayein',
 };
 
 const ur = {
@@ -533,14 +674,27 @@ const ur = {
   'predict.finish': 'نتیجہ دیکھیں',
   'predict.continue': 'آگے بڑھیں',
   'sort.instructionRetry':
-    'اب {count} بلیاں Cats باکس میں اور {count} کتے Dogs باکس میں لگائیں۔ تصویر ڈریگ کریں یا ٹیپ کر کے باکس منتخب کریں۔',
+    'آپ کی پہلی بلی اور کتا باکسوں میں ہی رہیں گے۔ {more} اور بلیاں اور {more} اور کتے لگائیں تاکہ ہر باکس میں {count} ہوں۔ تصویر ڈریگ کریں یا ٹیپ کر کے باکس منتخب کریں۔',
+  'sort.kept': 'پچھلی بار سے رکھی ہوئی',
 
-  'retry.right': 'روبو نے یہ ٹھیک بتایا، لیکن وہ صرف {percent}% یقین سے تھا۔',
-  'retry.wrong': 'اوہو، روبو کا اندازہ غلط تھا! وہ {percent}% یقین سے تھا، لیکن تصویر {category} کی ہے۔',
-  'retry.why':
-    'ایسا اس لیے ہوا کہ ہم نے روبو کو ہر جانور کی صرف ایک تصویر سے سکھایا۔ اتنی کم مثالوں سے وہ زیادہ یقین نہیں کر سکتا، اور آسانی سے غلطی کر سکتا ہے۔',
-  'retry.again': 'چلیے دوبارہ کوشش کرتے ہیں! اس بار ٹریننگ ڈیٹا کے لیے ہر جانور کی {count} تصویریں چنیں۔',
-  'retry.better': 'زیادہ مثالیں روبو کو اکثر صحیح اندازہ لگانے اور زیادہ یقین کرنے میں مدد کریں گی۔',
+  'robo.ready': 'ٹھیک ہے! میں نے ایک بلی اور ایک کتے سے سیکھا ہے۔ دیکھتے ہیں کیا میں نئے جانور کو پہچان سکتا ہوں!',
+  'robo.thinking1': 'ہمم... یہ تھوڑی مشکل لگ رہی ہے!',
+  'robo.thinking2': 'میں نے صرف ایک بلی اور ایک کتے کے ساتھ مشق کی ہے... سوچنے دو۔ امید ہے میں نے کافی سیکھا ہے!',
+  'predict.showGuess': 'روبو کا اندازہ دکھائیں',
+  'robo.gotIt':
+    'یے، یہ ٹھیک نکلا! لیکن دو تصویریں زیادہ مشق نہیں۔ اگلی بار کوئی اور بلی یا کتا مجھے الجھا سکتا ہے!',
+  'robo.mixedUp':
+    'اوپس! مجھ سے یہ گڑبڑ ہو گئی۔ میں نے صرف دو ٹریننگ تصویریں دیکھی ہیں، شاید مجھے اور مثالوں کی ضرورت ہے!',
+  'retry.limited':
+    'روبو نے صرف ایک بلی اور ایک کتے سے سیکھا ہے۔ دو تصویریں یہ دکھانے کے لیے کافی نہیں کہ بلیاں اور کتے کتنی طرح کے دکھ سکتے ہیں!',
+  'retry.oneRight':
+    'ایک تصویر ٹھیک بتانے سے یہ ثابت نہیں ہوتا کہ روبو ہر بلی اور کتے کو پہچان سکتا ہے۔ اور جب روبو نے کہا وہ {percent}% پکا ہے، تو یہ اس کا یقین تھا، یہ نہیں کہ وہ کتنی بار صحیح ہوتا ہے۔',
+  'retry.sureWrong':
+    'روبو نے کہا وہ {percent}% پکا ہے، پھر بھی وہ غلط تھا۔ یقین ہونا اور صحیح ہونا ایک بات نہیں!',
+  'retry.more': 'چلیے روبو کو اور مثالیں دیتے ہیں تاکہ وہ مختلف انداز، رنگوں اور پس منظر کے بارے میں سیکھ سکے۔',
+  'retry.again':
+    'چلیے دوبارہ کوشش کرتے ہیں! اس بار ہم روبو کو ہر جانور کی {count} تصویروں سے سکھائیں گے۔ آپ کی پہلی دو تصویریں باکسوں میں رہیں گی، بس ہر ایک کی {more} اور لگائیں۔',
+  'retry.giveMore': 'روبو کو اور مثالیں دیں',
 
   'compare.intro':
     'اب جب ہم نے روبو کو بہتر سکھایا اور زیادہ مثالیں دی ہیں، دیکھتے ہیں کہ وہ پچھلی بار والی اسی تصویر کے بارے میں کیا کہتا ہے۔',
@@ -550,9 +704,9 @@ const ur = {
   'compare.fixed':
     'ہاں، یہ {category} ہے! پچھلی بار روبو کا اندازہ غلط تھا، لیکن اب ٹھیک ہے، اور وہ {now}% یقین سے ہے۔ زیادہ مثالوں نے مدد کی!',
   'compare.sameRight':
-    'ہاں، یہ {category} ہے! روبو نے پھر ٹھیک بتایا۔ اب وہ {now}% یقین سے ہے، اور پچھلی بار {before}% تھا۔ زیادہ مثالیں ہر اندازہ نہیں بدلتیں، لیکن اکثر مدد کرتی ہیں۔',
+    'ہاں، یہ {category} ہے! روبو نے پھر ٹھیک بتایا۔ اب وہ {now}% یقین سے ہے، اور پچھلی بار {before}% تھا۔ زیادہ مثالیں اکثر مدد کرتی ہیں، لیکن ہر بار بہتر اندازے کی ضمانت نہیں۔',
   'compare.stillWrong':
-    'ہمم، یہ دراصل {category} ہے۔ زیادہ مثالوں کے بعد بھی روبو نے یہ غلط بتایا۔ اس بار وہ {now}% یقین سے تھا، اور پچھلی بار {before}%۔ کچھ تصویریں مشکل ہوتی ہیں!',
+    'ہمم، یہ دراصل {category} ہے۔ زیادہ مثالوں کے بعد بھی روبو نے یہ غلط بتایا۔ اس بار وہ {now}% یقین سے تھا، اور پچھلی بار {before}%۔ زیادہ مثالیں مدد کر سکتی ہیں، لیکن تصویروں کا صاف اور مختلف ہونا بھی ضروری ہے!',
   'compare.next': 'اب روبو کو ٹیسٹ کرنے کے لیے {count} اور تصویریں چنیں!',
   'predict.roboLabel': 'روبوٹ کی پیڈیکشن',
   'predict.teacherLabel': 'ٹیچر کا جواب',
@@ -581,14 +735,36 @@ const ur = {
   'guide.predictWrong': 'مشکل سوال! ماڈل غلط تھا — اسی سے ہم سیکھتے ہیں۔',
   'guide.complete': 'آپ نے آج کمپیوٹر کو سکھایا۔ زبردست کام!',
 
-  'teacher.line1':
-    'ہیلووو، طالب علم! ہماری چھوٹی سی لرننگ لیب میں خوش آمدید! میں آپ کی ٹیچر ہوں، اور میں اس گیم میں آپ کی رہنمائی کروں گی۔ مجھے بہت خوشی ہے کہ آپ یہاں آئے ہیں!',
-  'teacher.line2':
-    'آج ہم ایک بہت ہی مزے کی چیز سیکھنے والے ہیں جسے مشین لرننگ یا ایم ایل کہتے ہیں! یہ ایسے ہوتا ہے کہ ہم کمپیوٹرز کو مثالوں سے سیکھنا سکھاتے ہیں، بجائے یہ بتانے کے کہ ہر چھوٹی بڑی چیز کیسے کرنی ہے!',
-  'teacher.line3':
-    'یہ فائدہ مند کیوں ہے؟ تو، کمپیوٹرز اپنی سیکھی ہوئی چیزیں استعمال کر کے ہماری مدد کر سکتے ہیں — جیسے تصویریں پہچاننا، پیٹرنز ڈھونڈنا، اور کسی نئی چیز کے بارے میں اندازہ لگانا!',
-  'teacher.line4':
-    'اور اب، آپ خود کوشش کریں! ہم قدم بہ قدم سیکھیں گے، کچھ گیمز کھیلیں گے، اور ساتھ ساتھ اپنے روبوٹ کو سکھائیں گے۔ آپ تیار ہیں؟ چلیے شروع کریں!',
+  'convo.teacherName': "ٹیچر",
+  'convo.roboName': "روبو",
+  'introTalk.1':
+    "ارے، روبو! آج ہم ایک ایسی چیز کے بارے میں جانیں گے جسے مشین لرننگ کہتے ہیں۔",
+  'introTalk.2':
+    "مشین لرننگ؟ یہ کیا ہوتی ہے؟",
+  'introTalk.3':
+    "یہ ایک ایسا طریقہ ہے جس میں کمپیوٹر مثالوں سے پیٹرن سیکھتے ہیں اور پھر سیکھی ہوئی باتوں کی مدد سے اندازہ لگاتے ہیں۔",
+  'introTalk.4':
+    "تو کیا مجھے ہر سوال کا جواب بتانے کے بجائے، مثالوں سے سیکھنے کا موقع مل سکتا ہے؟",
+  'introTalk.5':
+    "بالکل! مثالیں تمہیں ایسے پیٹرن سیکھنے میں مدد دیتی ہیں جنہیں تم کسی نئی چیز کو دیکھ کر استعمال کر سکتے ہو۔",
+  'introTalk.6':
+    "آؤ، مل کر کوشش کرتے ہیں۔ میں تمہیں بلیوں اور کتوں کی تصویروں میں فرق پہچاننا سکھاؤں گا۔",
+  'introTalk.7':
+    "بلیاں اور کتے؟ مجھے ابھی نہیں پتا کہ یہ کیا ہوتے ہیں! یہ دکھتے کیسے ہیں؟",
+  'introTalk.8':
+    "یہ دو مختلف قسم کے جانور ہیں۔ میں تمہیں تصویریں دکھاؤں گا اور بتاؤں گا کہ کون سی تصویریں بلیوں کی ہیں اور کون سی کتوں کی۔ ان مثالوں سے تم ان کے پیٹرن سیکھ سکو گے۔",
+  'introTalk.9':
+    "اوہ! تو مجھے مثالیں دیکھنے کو ملیں گی، اور میں سیکھ سکوں گا کہ ان میں فرق کیسے پہچاننا ہے؟",
+  'introTalk.10':
+    "بالکل درست! پھر ہم دیکھیں گے کہ کیا تم سیکھی ہوئی باتوں کو نئی تصویروں کے بارے میں اندازہ لگانے کے لیے استعمال کر سکتے ہو۔",
+  'introTalk.11':
+    "یہ تو بہت مزے دار لگ رہا ہے! لیکن اگر میں کسی تصویر کے بارے میں غلط جواب دے دوں تو؟",
+  'introTalk.12':
+    "کوئی بات نہیں! مشین لرننگ کے ماڈلز سے بھی غلطیاں ہو سکتی ہیں۔ ہم تمہارے اندازوں کو جانچیں گے اور دیکھیں گے کہ مزید اچھی مثالوں کی مدد سے تم کیسے بہتر ہو سکتے ہو۔",
+  'introTalk.13':
+    "میں کوشش کرنے کے لیے تیار ہوں! آؤ، بلیوں اور کتوں کے بارے میں سیکھتے ہیں!",
+  'introTalk.14':
+    "بہت خوب! آؤ، اپنا پہلا سبق شروع کرتے ہیں۔",
 
   'stageGuide.label': 'ٹیچر کی رہنمائی',
   'teacher.next': 'اگلا',
@@ -602,37 +778,72 @@ const ur = {
   'lesson.label': 'اسٹیج ۱ — مشین لرننگ کیا ہے؟',
   'lesson.stage': 'لیول ۱ — اسٹیج ۱',
   'lesson.toQuiz': 'کوئز شروع کریں',
-  'lesson.line1':
-    'کلاس روم میں خوش آمدید! چلیے مشین لرننگ کے بارے میں سیکھنا شروع کرتے ہیں۔ دھیان سے سنیے، کیونکہ آخر میں ایک چھوٹا سا کوئز ہوگا!',
-  'lesson.line2':
-    'مشین لرننگ کا مطلب ہے کمپیوٹر کو بہت ساری مثالیں دکھا کر پیٹرنز ڈھونڈنا سکھانا۔',
-  'lesson.line3':
-    'پیٹرن ایک ایسا اشارہ ہے جو بار بار نظر آتا ہے۔ بلیوں کے اکثر نوکیلے کان اور لمبی مونچھیں ہوتی ہیں۔ ایسے اشارے پیٹرن بناتے ہیں!',
-  'lesson.line4':
-    'ہم کمپیوٹر کے لیے ہر قاعدہ خود نہیں لکھتے۔ بلکہ وہ مثالوں کو پڑھتا ہے اور قاعدے خود ڈھونڈ لیتا ہے۔',
-  'lesson.line5':
-    'یہ فائدہ مند کیوں ہے؟ جب وہ پیٹرن سیکھ لیتا ہے، تو کمپیوٹر کسی نئی چیز کے بارے میں اندازہ لگا سکتا ہے جو اس نے پہلے کبھی نہیں دیکھی۔',
-  'lesson.line6':
-    'اس اندازے کو پیڈیکشن کہتے ہیں۔ مشین لرننگ گانے تجویز کرنے، فضول ای میل الگ کرنے، اور آپ کا اگلا لفظ اندازہ لگانے میں مدد کرتی ہے!',
-  'lesson.line7':
-    'کمپیوٹر کا جو حصہ سیکھتا ہے اسے ماڈل کہتے ہیں۔ ماڈل ڈیٹا سے پیٹرنز سیکھتا ہے، پھر ان سے پیڈیکشن کرتا ہے۔',
-  'lesson.line8':
-    'ڈیٹا کا مطلب ہے معلومات، جیسے تصویریں، نمبر یا الفاظ۔ ماڈل کو سکھانے والی مثالوں کو ٹریننگ ڈیٹا کہتے ہیں۔',
-  'lesson.line9':
-    'ہر مثال کا ایک لیبل ہو سکتا ہے، جو صحیح جواب ہوتا ہے۔ بلی کی تصویر کو لیبل "cat" ملتا ہے۔',
-  'lesson.line10':
-    'ماڈل کو جواب جادو سے نہیں پتا۔ اسے صرف وہ پتا ہے جو اس نے اپنی مثالوں سے سیکھا، بالکل جیسے آپ مشق سے بہتر ہوتے ہیں۔',
-  'lesson.line11':
-    'ماڈل غلطی کر سکتے ہیں! ماڈل بہت یقین کے ساتھ بھی غلط ہو سکتا ہے۔ اسی لیے ہم ہمیشہ اس کے جواب چیک کرتے ہیں۔',
-  'lesson.line12':
-    'اچھی مثالیں ضروری ہیں۔ اگر ہم ماڈل کو غلط لیبل دیں، جیسے بلی کو کتا کہنا، تو وہ غلط پیٹرن سیکھتا ہے۔',
-  'lesson.line13':
-    'مختلف مثالیں بھی ضروری ہیں۔ اگر ماڈل نے صرف کالی بلیاں دیکھی ہوں، تو نارنجی بلی اسے الجھا سکتی ہے۔ طرح طرح کی مثالیں اسے بہتر سکھاتی ہیں۔',
-  'lesson.line14': 'اب جب ہم نے بنیادی باتیں سیکھ لی ہیں، چلیے کوئز آزماتے ہیں!',
+  'lessonTalk.1':
+    "چلو، روبو! بلیوں اور کتوں کے بارے میں سیکھنے سے پہلے، بات کرتے ہیں کہ تم کیسے سیکھو گے۔",
+  'lessonTalk.2':
+    "کیا اس کا مطلب ہے کہ آپ مجھے ہر تصویر کا جواب بتائیں گی؟",
+  'lessonTalk.3':
+    "بالکل نہیں! مشین لرننگ میں تم مثالوں سے پیٹرنز سیکھ سکتے ہو، بجائے اس کے کہ تمہیں ہر جواب ایک ایک کر کے دیا جائے۔",
+  'lessonTalk.4':
+    "تو میں مثالوں سے جو سیکھوں گا، اس سے نئی تصویر کے بارے میں اندازہ لگا سکتا ہوں؟",
+  'lessonTalk.5':
+    "بالکل! یہی خیال ہے۔",
+  'lessonTalk.6':
+    "پہلے میں تمہیں مثالیں دوں گی۔ کچھ تصویروں میں بلیاں ہوں گی اور کچھ میں کتے۔ ہم ان پر لیبل لگائیں گے تاکہ تمہیں پتا ہو کہ ہر تصویر میں کون سا جانور ہے۔",
+  'lessonTalk.7':
+    "لیبل مجھے بتاتا ہے کہ ہر ٹریننگ تصویر میں کیا ہے؟",
+  'lessonTalk.8':
+    "ٹھیک کہا! مثالیں اور ان کے لیبل تمہیں سیکھنے میں مدد کرتے ہیں کہ کون سے پیٹرنز بلیوں کے ہیں اور کون سے کتوں کے۔",
+  'lessonTalk.9':
+    "تو مجھے تصویروں کو دھیان سے دیکھنا چاہیے اور ان کے فرق سے سیکھنا چاہیے!",
+  'lessonTalk.10':
+    "بالکل صحیح!",
+  'lessonTalk.11':
+    "لیکن اس حصے کو کیا کہتے ہیں جو ان سب مثالوں سے سیکھتا ہے؟",
+  'lessonTalk.12':
+    "اسے ماڈل کہتے ہیں! ماڈل ٹریننگ مثالوں سے پیٹرنز سیکھتا ہے، پھر ان سے نئی تصویروں کے بارے میں پیڈیکشنز کرتا ہے۔",
+  'lessonTalk.13':
+    "تو میرا ماڈل مجھے فیصلہ کرنے میں مدد کرے گا کہ نئی تصویر میں بلی ہے یا کتا؟",
+  'lessonTalk.14':
+    "بالکل۔ لیکن یاد رکھنا، پیڈیکشن ایک اندازہ ہے جو ماڈل کے سیکھے ہوئے پر مبنی ہے۔ وہ ہمیشہ صحیح نہیں ہوتا۔",
+  'lessonTalk.15':
+    "اگر میں جانور کا غلط اندازہ لگاؤں تو کیا ہوگا؟",
+  'lessonTalk.16':
+    "ایسا ہو سکتا ہے! ہم تمہاری پیڈیکشنز کو صحیح جوابوں سے چیک کریں گے۔ اگر غلطیاں ہوں، تو ہم دیکھ سکتے ہیں کہ بہتر ہونے میں کیا مدد کرے گا۔",
+  'lessonTalk.17':
+    "تو مجھے یہ نہیں سوچنا چاہیے کہ میں پرفیکٹ ہوں صرف اس لیے کہ ایک تصویر ٹھیک بتا دی؟",
+  'lessonTalk.18':
+    "بالکل! ہمیں دیکھنا ہوگا کہ تم ایک سے زیادہ مثالوں پر کیسا کرتے ہو۔",
+  'lessonTalk.19':
+    "اگر آپ مجھے سینکڑوں تصویریں دیں، تو کیا میں ہر پیڈیکشن صحیح کروں گا؟",
+  'lessonTalk.20':
+    "نہیں، روبو۔ مثالیں کام کی، صحیح لیبل والی، اور مختلف ہونی چاہییں۔ بہت ساری خراب یا ایک جیسی مثالیں ضروری نہیں کہ تمہیں وہ پیٹرنز سکھائیں جو تمہیں چاہییں۔",
+  'lessonTalk.21':
+    "تو مجھے اچھی مثالیں چاہییں، صرف زیادہ نہیں!",
+  'lessonTalk.22':
+    "ٹھیک کہا۔ اور جب ہم ٹریننگ شروع کریں گے، تو دیکھیں گے کہ تمہارے انتخاب تمہارے نتیجوں پر کیسا اثر ڈالتے ہیں۔",
+  'lessonTalk.23':
+    "مجھے لگتا ہے میں تیار ہوں! کیا سیکھنا شروع کرنے سے پہلے ہم چیک کر سکتے ہیں کہ میں نے کیا سمجھا؟",
+  'lessonTalk.24':
+    "اچھا خیال ہے، روبو! دیکھتے ہیں تم نے اب تک کیا سیکھا۔",
 
-  'quizPlaceholder.title': 'کوئز کا وقت!',
-  'quizPlaceholder.text': 'کوئز ابھی بن رہا ہے۔ فی الحال، چلیے اسٹیج ۲ میں روبو کو سکھاتے ہیں!',
-  'quizPlaceholder.continue': 'اسٹیج ۲ پر جائیں',
+  'quiz.label': 'اسٹیج ۱ کوئز',
+  'quiz.progress': 'سوال {current} از {total}',
+  'quiz.confirm': 'پکا کریں',
+  'quiz.skip': 'چھوڑ دیں',
+  'quiz.wellDone': 'شاباش! چلیے دیکھتے ہیں آپ نے کیسا کیا!',
+  'quiz.seeResults': 'میرا نتیجہ دکھائیں',
+  'report.title': 'آپ کا کوئز نتیجہ',
+  'report.score': '{total} میں سے {score} درست',
+  'report.correct': 'درست: {count}',
+  'report.incorrect': 'غلط: {count}',
+  'report.skipped': 'چھوڑے گئے: {count}',
+  'report.reviewTitle': 'چلیے جو رہ گئے انہیں دیکھتے ہیں',
+  'report.allCorrect': 'آپ نے ہر سوال درست کیا۔ زبردست!',
+  'report.yourAnswer': 'آپ کا جواب: {answer}',
+  'report.skippedAnswer': 'آپ کا جواب: چھوڑ دیا',
+  'report.correctAnswer': 'درست جواب: {answer}',
+  'report.continue': 'اسٹیج ۲ پر جائیں',
 };
 
 const DICTIONARIES = { en, ru, ur };

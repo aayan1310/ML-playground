@@ -12,6 +12,7 @@ class AudioController {
   constructor() {
     this.enabled = true;
     this._music = null; // lazy: created on first start/toggle after a user gesture
+    this._voice = null; // the one dialogue voice line playing, if any
 
     // Fallback path: pre-created Audio elements (used when Web Audio is
     // unavailable or decoding fails). Kept intentionally.
@@ -96,6 +97,70 @@ class AudioController {
       return true;
     } catch {
       return false;
+    }
+  }
+
+  /**
+   * Voice lines (dialogue narration): a single channel, so starting a line
+   * always stops the previous one and two lines can never overlap. Not tied
+   * to the music toggle. Failures (missing file, autoplay refusal) are
+   * swallowed so the dialogue keeps working without sound.
+   * Returns the element so the caller can stop exactly its own line.
+   * `rate` speeds the line up (or slows it down) without changing the
+   * voice's pitch, where the browser supports that.
+   */
+  playVoice(url, rate = 1) {
+    this.stopVoice();
+    if (!url) return null;
+    try {
+      const voice = new Audio(url);
+      voice.preservesPitch = true;
+      voice.webkitPreservesPitch = true; // older Safari
+      // Both: loading the file resets playbackRate to defaultPlaybackRate.
+      voice.defaultPlaybackRate = rate;
+      voice.playbackRate = rate;
+      this._voice = voice;
+      voice.play().catch(() => {
+        if (this._voice === voice) this._voice = null;
+      });
+      return voice;
+    } catch {
+      this._voice = null;
+      return null;
+    }
+  }
+
+  /** Stops the current voice line (only if it is `voice`, when given). */
+  stopVoice(voice) {
+    const current = this._voice;
+    if (!current || (voice && voice !== current)) return;
+    this._voice = null;
+    try {
+      current.pause();
+      current.currentTime = 0;
+    } catch {
+      /* ignore */
+    }
+  }
+
+  /**
+   * Warms the browser cache so a voice line can start without a fetch gap,
+   * and reports the line's length (seconds) to `onDuration` once known.
+   * Returns a cancel function that stops the report.
+   */
+  preloadVoice(url, onDuration) {
+    if (!url) return () => {};
+    try {
+      const el = new Audio();
+      el.preload = 'auto';
+      const report = () => {
+        if (onDuration && Number.isFinite(el.duration)) onDuration(el.duration);
+      };
+      el.addEventListener('loadedmetadata', report);
+      el.src = url;
+      return () => el.removeEventListener('loadedmetadata', report);
+    } catch {
+      return () => {};
     }
   }
 

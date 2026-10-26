@@ -45,10 +45,18 @@ ML playground/
   ml-game-frontend/
     src/App.jsx            # screen routing
     src/screens/           # MainMenu, TeacherIntro, Intro, Stage1 (classroom lesson),
-                           # QuizPlaceholder (temporary), Stage2 (sort -> train -> predict)
+                           # Quiz, QuizReport, Stage2 (sort -> train -> predict)
+    src/quiz/              # questionBank.js (26 questions), pickQuiz.js (pick 5, shuffle, score)
     src/components/        # TopControls, StageGuide, TrainSequence (robot scan, portal)
     src/api.js, audio.js, i18n.js (en / ru / ur), App.css, index.css
     src/assets/            # characters, background, audio, fonts
+                           # audio/voice/introduction/introduction_{teacher,robot}_{eng,urdu}_lineN.mp3:
+                           # the Level 1 intro's 14 turns (teacher 1-8, Robo 1-6, mapped in
+                           # App.jsx INTRO_VOICES; Roman Urdu plays the Urdu files).
+                           # Source: assets/audio/Audio lines/{Teacher,Robot} lines/Introduction/
+    src/introVoiceTiming.js # speech spans of each intro voice line; the text types along
+                           # with the voice (TeacherIntro). Regenerate with
+                           # `python scripts/voice_timing.py` (needs ffmpeg) after changing them
     public/ml-playground/  # duplicate of public/ml-playground (see docs/data-layout.md)
   assets/                  # source art (characters, background, audio, fonts)
   docs/                    # see docs/README.md
@@ -78,17 +86,21 @@ The constants in `ml.py` are `MODEL_C = 10.0`, `MODEL_MAX_ITER = 1000`, and
 menu -> TeacherIntro -> Stage 1 start screen (`Intro copy="intro"`) ->
 **Stage 1** lesson (the classroom rises over the park; once it has arrived
 the teacher rises and explains ML basics in 14 dialogue lines; Skip or the
-last line -> quiz) -> quiz + final report (Task 2; `QuizPlaceholder` for now,
-which calls `handleQuizComplete` in `App.jsx`) -> Stage 2 start screen
+last line -> quiz) -> quiz (5 random questions from `src/quiz/questionBank.js`
+in the panel; Confirm or Skip, skipped = incorrect) -> panel drops, teacher
+rises ("Well done! Let's see how you've done!") -> `QuizReport` (score,
+counts, review of missed questions) -> `handleQuizComplete` -> Stage 2 start screen
 (`Intro copy="stage2Intro"`, park again) -> **Stage 2** sort/train/predict
 in two rounds (`Stage2.jsx`, `round` = backend stage): round 1 sorts 1+1 and
-makes 1 prediction, the teacher explains why that is weak; round 2 sorts
-5+5 from a fresh pool, auto re-predicts the round-1 picture, compares the
-confidence, then allows 2 free predictions.
+makes 1 prediction, the teacher explains why that is weak; round 2 keeps the
+round-1 cat and dog locked in the boxes, draws its pool with the same backend
+algorithm (10 per category from the training images, `accepted` = the kept
+ids), the player adds 4 more of each, then Robo auto re-predicts the round-1
+picture, the teacher compares the confidence, and 2 free predictions follow.
 
-Player stage numbers are NOT backend stage numbers: Stage 2 calls the API
-with `stage: 1` (3 per category). Keep that mapping in mind when adding the
-5- and 10-picture stages. The classroom background is
+Player stage numbers are NOT backend stage numbers: Stage 2's two rounds call
+the API with `stage: 1` (1 per category) and `stage: 2` (5 per category).
+Backend stage 3 (10 per category) is not used yet. The classroom background is
 `src/assets/classroom-background.jpg` (source: `assets/classroom_background.jpg`),
 used by `.app__scene--classroom` in `App.css`.
 
@@ -155,17 +167,15 @@ Run lint, build, and the pytest suite before and after any change.
 ## What still needs building
 
 Per `docs/PLAN.md` / `docs/GAME-FLOW-PLAN.md`:
-- The Stage 1 quiz (Task 2): question bank, random selection, scoring,
-  report. It replaces `QuizPlaceholder`, is entered from `Stage1`'s `onDone`
-  (lesson finished or skipped), and calls `handleQuizComplete` when the
-  report is closed.
-- The 5- and 10-picture gameplay stages of Level 1 (backend stages 2 and 3).
+- Quiz question bank translations (ru/ur): the 26 questions are English-only.
+- A 10-picture gameplay round of Level 1 (backend stage 3), if wanted.
 - An Accuracy Detective screen (results explained in plain language).
 - A Mission Complete screen (XP, badge, lesson summary).
 - Integration with the partner app (same-origin routing, progress saving). See
   `khair-labs-analysis/`.
-- Polish: teacher copy review, ru/ur translations (the language selector is
-  off via `LANGUAGE_SELECTOR_ENABLED`), accessibility, phone testing.
+- Polish: teacher copy review, ru/ur translations (the menu language selector
+  is on via `LANGUAGE_SELECTOR_ENABLED`; English, Urdu and Roman Urdu, with
+  only the Level 1 intro voiced), accessibility, phone testing.
 
 ## Constraints
 

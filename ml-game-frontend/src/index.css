@@ -66,6 +66,12 @@
 
   --font: 'Trebuchet MS', 'Segoe UI', system-ui, sans-serif;
 
+  /* Robo's size relative to the teacher, everywhere both appear (tunable in
+     one place). teacher.png's shoulders sit ~74% up its visible figure and
+     robot.png fills ~97% of its image, so 0.69 x the teacher's image height
+     puts the top of Robo (antennae included) at the teacher's shoulders. */
+  --robo-scale: 0.69;
+
   /* Background blur applied after Begin Lesson (tunable in one place). */
   --bg-blur: 14px;
 

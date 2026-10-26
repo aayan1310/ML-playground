@@ -52,7 +52,17 @@ function validatePayload(setup, pool, stage) {
   if (!ok) throw new api.ApiError('invalid_payload', 'Stage data failed validation.', 500);
 }
 
-function CategoryTray({ t, category, slots, wrongIds, onRemove, onDropImage, disabled, sound }) {
+function CategoryTray({
+  t,
+  category,
+  slots,
+  wrongIds,
+  lockedIds,
+  onRemove,
+  onDropImage,
+  disabled,
+  sound,
+}) {
   const titleKey = category === 'cat' ? 'category.cats' : 'category.dogs';
   const mascot = category === 'cat' ? '\u{1F431}' : '\u{1F436}';
   const filled = slots.filter(Boolean).length;
@@ -85,6 +95,23 @@ function CategoryTray({ t, category, slots, wrongIds, onRemove, onDropImage, dis
             );
           }
           const wrong = wrongIds.includes(imageId);
+          if (lockedIds.includes(imageId)) {
+            // Carried over from round 1: stays in its box and cannot be removed.
+            return (
+              <li
+                key={i}
+                className="slot slot--filled slot--locked"
+                title={t('sort.kept')}
+              >
+                <img
+                  src={api.imageUrl('images/' + imageId + '.jpg')}
+                  alt={t('sort.imageAlt', { id: imageId }) + ' - ' + t('sort.kept')}
+                  draggable={false}
+                />
+                <span className="slot__lock" aria-hidden="true">{'\u{1F512}'}</span>
+              </li>
+            );
+          }
           return (
             <li key={i} className={'slot slot--filled' + (wrong ? ' is-wrong' : '')}>
               <button
@@ -123,7 +150,8 @@ export default function Stage2({ t, lang = 'en' }) {
   // Round-1 prediction, kept so round 2 can re-test the same picture and
   // compare: { testId, category, percent, match, trueCategory }.
   const [firstResult, setFirstResult] = useState(null);
-  // 'intro' | 'help' | 'wrong' (sorting) | 'retry' | 'compare' (predicting)
+  // 'intro' | 'help' | 'wrong' (sorting) |
+  // 'robotReady' | 'robotReact' | 'retry' | 'compare' (predicting)
   const [guide, setGuide] = useState('intro');
   const [leaving, setLeaving] = useState(false);
   const leaveTimerRef = useRef(null);
@@ -138,6 +166,10 @@ export default function Stage2({ t, lang = 'en' }) {
   const [candidates, setCandidates] = useState([]);
 
   const [placements, setPlacements] = useState({});
+  // Round 2 keeps the round-1 pictures in their boxes (locked); the pool is
+  // drawn without them, so the player adds the difference up to 5 each.
+  const [lockedIds, setLockedIds] = useState([]);
+  const lockedIdsRef = useRef([]);
   const [selectedId, setSelectedId] = useState(null);
   const [wrongIds, setWrongIds] = useState([]);
   const [notice, setNotice] = useState(null);
@@ -156,9 +188,11 @@ export default function Stage2({ t, lang = 'en' }) {
   const [predictBusy, setPredictBusy] = useState(null);
   const [predictError, setPredictError] = useState(null);
   const [results, setResults] = useState([]);
-  // Character-led prediction flow. 'ready' = pick + Ask model; 'robo' = the
-  // robot slides in and speaks its prediction; 'teacher' = the teacher slides
-  // in and reveals the true answer; then the next prediction resets to 'ready'.
+  // Character-led prediction flow. 'ready' = pick + Ask model; 'thinking'
+  // (round 1 only) = the robot slides in and hesitates, its real prediction
+  // already fetched but hidden; 'robo' = the robot speaks its prediction;
+  // 'teacher' = the teacher slides in and reveals the true answer; then the
+  // next prediction resets to 'ready'.
   const [predictStep, setPredictStep] = useState('ready');
   // True once the current character's entrance animation has settled, so the
   // follow-up button only becomes available after the character has arrived.
@@ -170,7 +204,9 @@ export default function Stage2({ t, lang = 'en' }) {
     (async () => {
       try {
         const setupData = await api.getSetup(LEVEL_ID);
-        const pool = await api.getPool(LEVEL_ID, round, []);
+        // Same backend draw for both rounds (10 per category from the training
+        // images); round 2 passes the kept pictures so they are not offered again.
+        const pool = await api.getPool(LEVEL_ID, round, lockedIdsRef.current);
         if (cancelled) return;
         validatePayload(setupData, pool, round);
         setSetup(setupData);
@@ -213,7 +249,9 @@ export default function Stage2({ t, lang = 'en' }) {
   // reveal-to-true.
   useEffect(() => {
     window.clearTimeout(charSettleRef.current);
-    if (predictStep !== 'robo' && predictStep !== 'teacher') return undefined;
+    if (predictStep !== 'thinking' && predictStep !== 'robo' && predictStep !== 'teacher') {
+      return undefined;
+    }
     const reduced =
       typeof window !== 'undefined' &&
       window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -267,24 +305,27 @@ export default function Stage2({ t, lang = 'en' }) {
 
   const removeFromSlot = useCallback(
     (id) => {
-      if (trainBusy || stageLocked) return;
+      if (trainBusy || stageLocked || lockedIds.includes(id)) return;
       setPlacements((prev) => {
         const next = { ...prev };
         delete next[id];
         return next;
       });
     },
-    [trainBusy, stageLocked],
+    [trainBusy, stageLocked, lockedIds],
   );
 
+  // Reset clears only this round's new picks; kept pictures stay in place.
   const resetStage = useCallback(() => {
     if (trainBusy || stageLocked) return;
-    setPlacements({});
+    setPlacements((prev) =>
+      Object.fromEntries(Object.entries(prev).filter(([id]) => lockedIds.includes(id))),
+    );
     setSelectedId(null);
     setWrongIds([]);
     setNotice(null);
     setSortError(null);
-  }, [trainBusy, stageLocked]);
+  }, [trainBusy, stageLocked, lockedIds]);
 
   const sortedReady = categories.every((c) => (placedIdsByCategory[c] ?? []).length === slotTotal);
 
@@ -355,6 +396,9 @@ export default function Stage2({ t, lang = 'en' }) {
       if (round === LAST_ROUND && firstResult) {
         setSelectedTestId(firstResult.testId);
         setGuide('compare');
+      } else {
+        // Round 1: Robo says what it learned from before the first test.
+        setGuide('robotReady');
       }
     };
     if (prefersReducedMotion()) {
@@ -377,27 +421,43 @@ export default function Stage2({ t, lang = 'en' }) {
       const res = await api.predict(LEVEL_ID, modelId, selectedTestId);
       setPrediction(res);
       setCharReady(false);
-      setPredictStep('robo');
+      // Round 1 (two training pictures): Robo hesitates first and the real
+      // prediction stays hidden until "Reveal Robo's guess".
+      setPredictStep(round === 1 ? 'thinking' : 'robo');
     } catch (e) {
       setPredictError(makeLoadError(e));
     } finally {
       setPredictBusy(null);
     }
-  }, [selectedTestId, modelId, predictBusy, usedIds.length, prediction, predictionsPerStage]);
+  }, [selectedTestId, modelId, predictBusy, usedIds.length, prediction, predictionsPerStage, round]);
+
+  // Shows the prediction Robo already made (no new request). charReady is
+  // re-armed so a double-click cannot also trigger the answer reveal.
+  const handleShowGuess = useCallback(() => {
+    if (predictStep !== 'thinking' || !prediction) return;
+    setCharReady(false);
+    setPredictStep('robo');
+  }, [predictStep, prediction]);
 
   // The teacher asked Robo about the fixed picture: Robo answers on its own
   // (the same real /predict call the Ask button makes; the picture was
   // selected when the screen opened). If it fails, Ask stays available.
+  const showRetryExplanation = useCallback(() => setGuide('retry'), []);
+
   const beginFixedPrediction = useCallback(() => {
     setGuide(null);
     handleAsk();
   }, [handleAsk]);
 
-  // After the round-1 explanation: back to sorting with a fresh stage-2 pool
-  // and 5 slots per box. The load effect refetches when `round` changes.
+  // After the round-1 explanation: back to sorting with 5 slots per box. The
+  // round-1 pictures (already checked correct by the backend) stay in their
+  // boxes, locked; the load effect refetches the pool when `round` changes,
+  // excluding them.
   const startNextRound = useCallback(() => {
+    const kept = Object.keys(placements);
+    lockedIdsRef.current = kept;
+    setLockedIds(kept);
     setGuide(null);
-    setPlacements({});
     setSelectedId(null);
     setWrongIds([]);
     setNotice(null);
@@ -414,7 +474,7 @@ export default function Stage2({ t, lang = 'en' }) {
     setCandidates([]);
     setPhase('loading');
     setRound(LAST_ROUND);
-  }, []);
+  }, [placements]);
 
   const handleReveal = useCallback(async () => {
     if (!selectedTestId || !modelId || predictBusy) return;
@@ -451,8 +511,9 @@ export default function Stage2({ t, lang = 'en' }) {
     setPredictStep('ready');
     if (nextUsed.length < predictionsPerStage) return;
     if (round < LAST_ROUND) {
-      // End of round 1: remember the result, then the teacher explains why
-      // one example each is not enough and sends the player back to sort.
+      // End of round 1: remember the result; Robo reacts to it, then the
+      // teacher explains why one example each is not enough and sends the
+      // player back to sort.
       setFirstResult({
         testId: roundResult.testId,
         category: roundResult.predicted,
@@ -460,7 +521,7 @@ export default function Stage2({ t, lang = 'en' }) {
         match: roundResult.match,
         trueCategory: roundResult.trueCategory,
       });
-      setGuide('retry');
+      setGuide('robotReact');
     } else {
       setPhase('complete');
     }
@@ -522,22 +583,36 @@ export default function Stage2({ t, lang = 'en' }) {
       predictionsPerStage,
     );
     const lastPrediction = usedIds.length + 1 >= predictionsPerStage;
-    // Teacher dialogue on this screen: why round 1 was weak, or the intro to
-    // re-testing the same picture in round 2.
+    // Dialogue on this screen (one speaker at a time):
+    // round 1 - Robo before predicting ('robotReady'), Robo reacting to the
+    // real result ('robotReact'), then the teacher explaining why two
+    // pictures are not enough ('retry'); round 2 - re-testing intro ('compare').
     let predictGuideLines = null;
     let onPredictGuideDone = null;
-    if (guide === 'retry' && firstResult) {
+    let predictGuideRobo = false;
+    let predictGuideFinal;
+    if (guide === 'robotReady') {
+      predictGuideLines = [t('robo.ready')];
+      predictGuideRobo = true;
+      onPredictGuideDone = finishGuide;
+    } else if (guide === 'robotReact' && firstResult) {
+      // Matches the real outcome of the backend prediction.
+      predictGuideLines = [firstResult.match ? t('robo.gotIt') : t('robo.mixedUp')];
+      predictGuideRobo = true;
+      onPredictGuideDone = showRetryExplanation;
+    } else if (guide === 'retry' && firstResult) {
       predictGuideLines = [
+        t('retry.limited'),
         firstResult.match
-          ? t('retry.right', { percent: firstResult.percent })
-          : t('retry.wrong', {
-              percent: firstResult.percent,
-              category: t('category.' + firstResult.trueCategory),
-            }),
-        t('retry.why'),
-        t('retry.again', { count: setup.stage_totals_per_category[LAST_ROUND - 1] }),
-        t('retry.better'),
+          ? t('retry.oneRight', { percent: firstResult.percent })
+          : t('retry.sureWrong', { percent: firstResult.percent }),
+        t('retry.more'),
+        t('retry.again', {
+          count: setup.stage_totals_per_category[LAST_ROUND - 1],
+          more: setup.stage_totals_per_category[LAST_ROUND - 1] - setup.stage_totals_per_category[0],
+        }),
       ];
+      predictGuideFinal = t('retry.giveMore');
       onPredictGuideDone = startNextRound;
     } else if (guide === 'compare') {
       predictGuideLines = [t('compare.intro'), t('compare.ask')];
@@ -568,8 +643,11 @@ export default function Stage2({ t, lang = 'en' }) {
             dir={lang === 'ur' ? 'rtl' : 'ltr'}
             onFinished={onPredictGuideDone}
             lines={predictGuideLines}
-            label={t('stageGuide.label')}
+            label={predictGuideRobo ? t('predict.roboLabel') : t('stageGuide.label')}
             nextLabel={t('teacher.next')}
+            finalLabel={predictGuideFinal}
+            character={predictGuideRobo ? robotUrl : undefined}
+            side={predictGuideRobo ? 'right' : 'left'}
           />
         )}
         <header className="predict-header">
@@ -631,16 +709,28 @@ export default function Stage2({ t, lang = 'en' }) {
             />
           </figure>
         )}
-        {predictStep === 'robo' && prediction && (
+        {(predictStep === 'thinking' || predictStep === 'robo') && prediction && (
+          // One Robo element for both steps, so it enters once (from the
+          // right) and only its bubble changes from hesitating to the guess.
           createPortal(
             <div className="predict-characters">
               <div
-                className="predict-actor predict-actor--robo"
+                className={
+                  'predict-actor predict-actor--robo' +
+                  (predictStep === 'thinking' ? ' predict-actor--thinking' : '')
+                }
                 role="status"
                 aria-live="polite"
                 aria-label={t('predict.roboLabel')}
               >
                 <div className="teacher-bubble predict-bubble predict-bubble--robo">
+                  {predictStep === 'thinking' ? (
+                    <>
+                      <p className="predict-bubble__text">{t('robo.thinking1')}</p>
+                      <p className="predict-bubble__text">{t('robo.thinking2')}</p>
+                    </>
+                  ) : (
+                  <>
                   <p className="predict-bubble__text">
                     {t('predict.roboLine', {
                       category: t('category.' + prediction.category),
@@ -666,6 +756,8 @@ export default function Stage2({ t, lang = 'en' }) {
                       })}
                     </p>
                   </div>
+                  </>
+                  )}
                 </div>
                 <img className="predict-actor__character" src={robotUrl} alt="" aria-hidden="true" />
               </div>
@@ -716,7 +808,7 @@ export default function Stage2({ t, lang = 'en' }) {
             type="button"
             className={
               'btn predict-progress-btn ' +
-              (predictStep === 'robo' ? 'btn--reveal' : 'btn--primary')
+              (predictStep === 'robo' || predictStep === 'thinking' ? 'btn--reveal' : 'btn--primary')
             }
             disabled={
               (predictStep === 'ready' && !selectedTestId) ||
@@ -726,14 +818,18 @@ export default function Stage2({ t, lang = 'en' }) {
             }
             onPointerDown={sound.onPointerDown}
             onClick={soundClick(
-              predictStep === 'robo'
-                ? handleReveal
-                : predictStep === 'teacher'
-                  ? handleNextRound
-                  : handleAsk,
+              predictStep === 'thinking'
+                ? handleShowGuess
+                : predictStep === 'robo'
+                  ? handleReveal
+                  : predictStep === 'teacher'
+                    ? handleNextRound
+                    : handleAsk,
             )}
           >
-            {predictStep === 'robo'
+            {predictStep === 'thinking'
+              ? t('predict.showGuess')
+              : predictStep === 'robo'
               ? predictBusy === 'reveal'
                 ? t('predict.revealing')
                 : t('predict.reveal')
@@ -816,7 +912,12 @@ export default function Stage2({ t, lang = 'en' }) {
           </button>
         </div>
         <p className="stage-instruction">
-          {round === 1 ? t('sort.instruction') : t('sort.instructionRetry', { count: slotTotal })}
+          {round === 1
+            ? t('sort.instruction')
+            : t('sort.instructionRetry', {
+                count: slotTotal,
+                more: slotTotal - lockedIds.length / categories.length,
+              })}
         </p>
         <div className="sort-layout">
           <section className="panel pool-panel" aria-label={t('sort.poolTitle')}>
@@ -897,6 +998,7 @@ export default function Stage2({ t, lang = 'en' }) {
                   category={category}
                   slots={slots}
                   wrongIds={wrongIds}
+                  lockedIds={lockedIds}
                   onRemove={removeFromSlot}
                   onDropImage={place}
                   disabled={controlsLocked}

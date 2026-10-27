@@ -282,7 +282,7 @@ export default function App() {
             <h1 className="app-header__title">{t('app.title')}</h1>
           </header>
           {screen === 'levelIntro' && <Intro t={t} copy="intro" onStart={handleStartLevel} />}
-          {screen === 'quiz' && <Quiz t={t} onFinish={handleQuizAnswered} />}
+          {screen === 'quiz' && <Quiz t={t} lang={lang} onFinish={handleQuizAnswered} />}
           {screen === 'quizReport' && (
             <QuizReport t={t} answers={quizAnswers} onContinue={handleQuizComplete} />
           )}

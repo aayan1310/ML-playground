@@ -330,7 +330,7 @@ const ru = {
   'error.title': 'Uff, kuch ghalat ho gaya.',
   'error.connection': 'Learning service se connection nahi ho raha. Check karein ke woh chal raha hai, phir dobara try karein.',
   'error.retry': 'Dobara try karein',
-  'error.code': 'Error code: {code}',
+  'error.code': 'Kharabi ka code: {code}',
   'error.retryHint': 'Neeche wala button dabaa kar dobara try karein.',
 
   'sort.header': 'Level 1 — Stage 2',
@@ -357,12 +357,12 @@ const ru = {
   'sort.wrongBody': 'Chamakti hui tasveerein hileni hain. Theek karein ya Reset dabayein.',
   'sort.imageAlt': 'Tasveer {id}',
 
-  'train.title': 'Training...',
+  'train.title': 'Training ho rahi hai...',
   'train.scanning': 'Robo aap ki tasveerein seekh raha hai. Woh har ek dekh raha hai.',
-  'train.successTitle': 'Training complete!',
+  'train.successTitle': 'Training mukammal!',
   'train.successBody': 'Usne {total} tasveerein seekhi: {cats} billiyan aur {dogs} kuttay.',
   'train.continue': 'Model ka test karein',
-  'train.guideWrong1': 'Oops! Kuch tasveerein ghalat box mein hain.',
+  'train.guideWrong1': 'Oho! Kuch tasveerein ghalat box mein hain.',
   'train.guideWrong2':
     'Chamakti hui tasveerein dekhein. Har ek ko sahi box mein le jayein, phir dobara Train dabayein.',
   'train.guideSuccess':
@@ -450,7 +450,7 @@ const ru = {
   'predict.roboLabel': 'Robot ki prediction',
   'predict.teacherLabel': 'Teacher ka jawaab',
 
-  'complete.title': 'Stage 2 complete!',
+  'complete.title': 'Stage 2 mukammal!',
   'complete.score': 'Model ne {total} mein se {right} predictions theek kiye.',
   'complete.lesson':
     'Usne aap ki labelled tasveerein se seekha, phir nayi tasveerein par test hua. Model confident ho sakta hai aur phir bhi ghalat ho — is liye hum check karte hain!',
@@ -566,7 +566,7 @@ const ru = {
   'lessonTalk.24':
     "Achha khayal hai, Robo! Dekhte hain tumne ab tak kya seekha.",
 
-  'quiz.label': 'Stage 1 quiz',
+  'quiz.label': 'Stage 1 ka quiz',
   'quiz.progress': 'Sawaal {current} / {total}',
   'quiz.confirm': 'Pakka karein',
   'quiz.skip': 'Chhor dein',
@@ -583,6 +583,13 @@ const ru = {
   'report.skippedAnswer': 'Aap ka jawaab: Chhor diya',
   'report.correctAnswer': 'Sahi jawaab: {answer}',
   'report.continue': 'Stage 2 par jayein',
+  // Main menu, music button, Skip.
+  'menu.title': 'Machine Learning Playground',
+  'menu.begin': 'Sabaq shuru karein',
+  'menu.subtitle': 'Ek robot ko billiyon aur kutton mein farq karna sikhayein!',
+  'music.on': 'Music chalu',
+  'music.off': 'Music band',
+  'teacher.skip': 'Chhor dein',
 };
 
 const ur = {
@@ -627,7 +634,7 @@ const ur = {
   'sort.toDogs': 'Dogs میں',
   'sort.deselect': 'ہٹائیں',
   'sort.reset': 'ری سیٹ',
-  'sort.train': 'ربو کو تربیت دیں',
+  'sort.train': 'روبو کو تربیت دیں',
   'sort.trainNeedMore': 'ٹرین کے لیے {count} سلاٹ اور بھریں۔',
   'sort.trainReady': 'تیار ہے! جب چاہیں ٹرین دبائیں۔',
   'sort.boxFull': 'وہ باکس بھر گیا۔ پہلے ایک سلاٹ خالی کریں۔',
@@ -844,6 +851,27 @@ const ur = {
   'report.skippedAnswer': 'آپ کا جواب: چھوڑ دیا',
   'report.correctAnswer': 'درست جواب: {answer}',
   'report.continue': 'اسٹیج ۲ پر جائیں',
+  // Main menu, music button, Skip.
+  'menu.title': 'مشین لرننگ پلے گراؤنڈ',
+  'menu.begin': 'سبق شروع کریں',
+  'menu.subtitle': 'ایک روبوٹ کو بلیوں اور کتوں میں فرق کرنا سکھائیں!',
+  'music.on': 'موسیقی چالو',
+  'music.off': 'موسیقی بند',
+  'teacher.skip': 'چھوڑ دیں',
+  // Stage 2 help panel and the teacher's lines after training.
+  'help.button': 'مدد',
+  'help.label': 'کیسے کھیلیں',
+  'help.line1': 'پول سے ایک تصویر چنیں، پھر Cats میں یا Dogs میں پر ٹیپ کریں۔ آپ اسے ڈریگ بھی کر سکتے ہیں۔',
+  'help.line2': 'سارے سلاٹ بھریں: بلیاں بلیوں کے باکس میں اور کتے کتوں کے باکس میں۔',
+  'help.line3': 'جب ہر تصویر صحیح باکس میں ہو، تو «روبو کو تربیت دیں» دبائیں۔',
+  'help.done': 'ٹھیک ہے',
+  'train.guideWrong1': 'اوہو! کچھ تصویریں غلط باکس میں ہیں۔',
+  'train.guideWrong2':
+    'چمکتی ہوئی تصویروں کو دیکھیں۔ ہر ایک کو صحیح باکس میں لے جائیں، پھر دوبارہ ٹرین دبائیں۔',
+  'train.guideSuccess':
+    'شاباش! تربیت مکمل ہو گئی۔ ماڈل نے آپ کے لیبلز سے سیکھا: {cats} بلیاں اور {dogs} کتے۔',
+  'train.guideSuccess2':
+    'آپ کی مثالیں اب لاک ہو گئی ہیں۔ چلیے ماڈل کو ان تصویروں پر آزماتے ہیں جو اس نے کبھی نہیں دیکھیں۔',
 };
 
 const DICTIONARIES = { en, ru, ur };

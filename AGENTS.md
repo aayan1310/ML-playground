@@ -46,7 +46,8 @@ ML playground/
     src/App.jsx            # screen routing
     src/screens/           # MainMenu, TeacherIntro, Intro, Stage1 (classroom lesson),
                            # Quiz, QuizReport, Stage2 (sort -> train -> predict)
-    src/quiz/              # questionBank.js (26 questions), pickQuiz.js (pick 5, shuffle, score)
+    src/quiz/              # questionBank.js (26 questions), pickQuiz.js (pick 5, shuffle, score),
+                           # questionBankTranslations.js (ur / ru text per question id)
     src/components/        # TopControls, StageGuide, TrainSequence (robot scan, portal)
     src/api.js, audio.js, i18n.js (en / ru / ur), App.css, index.css
     src/assets/            # characters, background, audio, fonts
@@ -141,7 +142,8 @@ Backend (from `ml-game-backend/`):
 ```powershell
 .\.venv\Scripts\Activate.ps1
 uvicorn app.main:app --reload --port 8000   # docs at http://localhost:8000/docs
-python -m pytest tests/ -q
+# pytest is not a project dependency (nor in .venv): add it for the run
+uv run --with pytest --with httpx python -m pytest tests -q
 ```
 
 Frontend (from `ml-game-frontend/`):
@@ -167,7 +169,8 @@ Run lint, build, and the pytest suite before and after any change.
 ## What still needs building
 
 Per `docs/PLAN.md` / `docs/GAME-FLOW-PLAN.md`:
-- Quiz question bank translations (ru/ur): the 26 questions are English-only.
+- Native-speaker review of the ur/ru text: every on-screen string and all 26
+  quiz questions now have Urdu and Roman Urdu drafts, none reviewed yet.
 - A 10-picture gameplay round of Level 1 (backend stage 3), if wanted.
 - An Accuracy Detective screen (results explained in plain language).
 - A Mission Complete screen (XP, badge, lesson summary).

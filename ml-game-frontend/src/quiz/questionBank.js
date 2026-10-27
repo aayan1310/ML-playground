@@ -8,7 +8,8 @@
 // answers, and a short `explanation` shown in the final report when the
 // student misses it. The quiz picks 5 at random per attempt (see
 // pickQuiz.js), so the bank needs at least 5 entries.
-// English only for now (the language selector is off; see i18n.js).
+// The Urdu and Roman Urdu text of each question is in
+// questionBankTranslations.js, under the same `id`: add it there too.
 
 export const QUESTION_BANK = [
   {

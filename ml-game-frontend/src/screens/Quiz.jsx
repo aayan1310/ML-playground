@@ -6,11 +6,12 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { buttonSoundProps } from '../audio.js';
 import { QUESTION_BANK } from '../quiz/questionBank.js';
+import { localizeBank } from '../quiz/questionBankTranslations.js';
 import { pickQuiz } from '../quiz/pickQuiz.js';
 
-export default function Quiz({ t, onFinish }) {
-  // One attempt: picked once when the quiz opens.
-  const [questions] = useState(() => pickQuiz(QUESTION_BANK));
+export default function Quiz({ t, lang, onFinish }) {
+  // One attempt: picked once when the quiz opens, in the chosen language.
+  const [questions] = useState(() => pickQuiz(localizeBank(QUESTION_BANK, lang)));
   const [index, setIndex] = useState(0);
   const [selected, setSelected] = useState(null);
   const answersRef = useRef([]);
